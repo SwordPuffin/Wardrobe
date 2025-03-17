@@ -215,7 +215,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             check_button.get_last_child().set_wrap(True) 
             check_button.get_last_child().set_wrap_mode(Pango.WrapMode.CHAR)
             check_button.get_last_child().set_size_request(300, -1)
-            check_button.get_last_child().set_margin_start(8)
+            check_button.get_last_child().set_margin_start(16)
             row_box.append(check_button)
             if(self.dropdown.get_selected() == 4): 
                 image_file = Gio.File.new_for_path((f"{shutil.os.path.join(wallpaper_paths[file_name], file_name)}")) 
