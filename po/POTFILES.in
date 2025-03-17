@@ -1,0 +1,8 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+data/io.github.swordpuffin.wardrobe.desktop.in
+data/io.github.swordpuffin.wardrobe.metainfo.xml.in
+data/io.github.swordpuffin.wardrobe.gschema.xml
+src/main.py
+src/window.py
+src/window.ui

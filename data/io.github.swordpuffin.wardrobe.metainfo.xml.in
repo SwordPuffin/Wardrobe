@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.swordpuffin.wardrobe</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Wardrobe</name>
+  <summary>Gnome customization made easy</summary>
+  <description>
+    <p>Wardrobe is a utility for downloading community made Gnome Shell, Gtk3/4, icon, and cursor themes as well as wallpapers</p>
+    <p>**This app has not been tested for any desktop environments other than Gnome, so do not expect it to fully work in Cinnamon, Xfce, etc.**</p>
+  </description>
+
+  <developer id="io.github.swordpuffin">
+    <name>Nathan Perlman</name>
+  </developer>
+
+  <url type="homepage">https://github.com/SwordPuffin/Wardrobe</url>
+  <url type="vcs-browser">https://github.com/SwordPuffin/Wardrobe</url>
+  <url type="bugtracker">https://github.com/SwordPuffin/Wardrobe/issues</url>
+
+  <translation type="gettext">wardrobe</translation>
+  <launchable type="desktop-id">io.github.swordpuffin.wardrobe.desktop</launchable>
+  <content_rating type="oars-1.1" />
+
+  <branding>
+    <color type="primary" scheme_preference="light">#cfc0f0</color>
+    <color type="primary" scheme_preference="dark">#24273a</color>
+  </branding>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Browsing for shell themes</caption>
+      <image>https://raw.githubusercontent.com/SwordPuffin/Wardrobe/main/data/screenshots/Screenshot1.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Downloading the Papirus icon pack</caption>
+      <image>https://raw.githubusercontent.com/SwordPuffin/Wardrobe/main/data/screenshots/Screenshot2.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Searching for a keyword</caption>
+      <image>https://raw.githubusercontent.com/SwordPuffin/Wardrobe/main/data/screenshots/Screenshot3.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.0.0" date="2025-03-16">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.0</url>
+      <description translate="no">
+        <p>First release</p>
+        <ul>
+          <li>Gnome customization utility</li>
+          <li>Allows for downloading and equipping Gnome themes in one app</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>
