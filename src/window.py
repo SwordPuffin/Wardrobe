@@ -23,8 +23,10 @@ gi.require_version('WebKit', '6.0')
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Soup", "3.0")
+gi.require_version("Xdp", "1.0")
+gi.require_version("XdpGtk4", "1.0")
 
-from gi.repository import Gtk, GLib, Gio, Gdk, Adw, WebKit, Soup, Pango
+from gi.repository import Gtk, GLib, Gio, Gdk, Adw, WebKit, Soup, Pango, Xdp, XdpGtk4
 from .utils import _get_valid_shell_themes, _get_valid_icon_themes, _get_valid_gtk_themes, _get_valid_cursor_themes, _get_valid_wallpapers, wallpaper_paths, css
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
@@ -233,20 +235,36 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     def change_theme(self, button, index, wallpaper_path):
         # TODO: This is an unsafe way to set the theme, will NEED revision
-
-        match(index):
-            case(0): #Shell themes
-                subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.shell.extensions.user-theme", "name", button.get_parent().get_first_child().get_label()], check=True)
-            case(1): #Icon themes
-                subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", button.get_parent().get_first_child().get_label()], check=True)
-            case(2): #Gtk3/4 themes
-                subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", button.get_parent().get_first_child().get_label()], check=True)
-            case(3): #Cursors
-                subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "cursor-theme", button.get_parent().get_first_child().get_label()], check=True)
-            case(4): #Wallpapers
-                subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.background", "picture-uri-dark", f"'{wallpaper_path}'"], check=True)
-                subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.background", "picture-uri", f"'{wallpaper_path}'"], check=True)
-        
+        if(button.get_active()):
+            match(index):
+                case(0): #Shell themes
+                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.shell.extensions.user-theme", "name", button.get_parent().get_first_child().get_label()], check=True)
+                case(1): #Icon themes
+                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", button.get_parent().get_first_child().get_label()], check=True)
+                case(2): #Gtk3/4 themes
+                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", button.get_parent().get_first_child().get_label()], check=True)
+                case(3): #Cursors
+                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "cursor-theme", button.get_parent().get_first_child().get_label()], check=True)
+                case(4): #Wallpapers
+                    portal = Xdp.Portal()
+                    parent = XdpGtk4.parent_new_gtk(self)
+                    print(wallpaper_path)
+                    file = f"file://{wallpaper_path}"
+                    portal.set_wallpaper(
+                        parent,
+                        file,
+                        Xdp.WallpaperFlags.PREVIEW
+                        | Xdp.WallpaperFlags.BACKGROUND
+                        | Xdp.WallpaperFlags.LOCKSCREEN,
+                        None,
+                        self.on_wallpaper_set
+                    )
+    def on_wallpaper_set(self, _portal, result):
+        success = _portal.set_wallpaper_finish(result)
+        if success:
+            print("Wallpaper set successfully")
+        else:
+            print("Could not set wallpaper")
     def on_search(self, search_entry):
         self.query = search_entry.get_text().strip()
         if(self.query):
