@@ -44,8 +44,8 @@
   </screenshots>
 
   <releases>
-    <release version="1.0.0" date="2025-03-19">
-      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.0</url>
+    <release version="1.0.1" date="2025-03-19">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.1</url>
       <description translate="no">
         <p>First release</p>
         <ul>
