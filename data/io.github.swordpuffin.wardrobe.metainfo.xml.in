@@ -44,13 +44,13 @@
   </screenshots>
 
   <releases>
-    <release version="1.0.0" date="2025-03-16">
+    <release version="1.0.0" date="2025-03-19">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.0</url>
       <description translate="no">
         <p>First release</p>
         <ul>
           <li>Gnome customization utility</li>
-          <li>Allows for downloading and equipping Gnome themes in one app</li>
+          <li>Allows for downloading of Gnome themes in one app</li>
         </ul>
       </description>
     </release>

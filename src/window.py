@@ -23,10 +23,12 @@ gi.require_version('WebKit', '6.0')
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Soup", "3.0")
-gi.require_version("Xdp", "1.0")
-gi.require_version("XdpGtk4", "1.0")
+#Remember to add libportal when trying to use xdp
+# gi.require_version("Xdp", "1.0")
+# gi.require_version("XdpGtk4", "1.0")
+# from gi.repository import Xdp, XdpGtk4
 
-from gi.repository import Gtk, GLib, Gio, Gdk, Adw, WebKit, Soup, Pango, Xdp, XdpGtk4
+from gi.repository import Gtk, GLib, Gio, Gdk, Adw, WebKit, Soup, Pango
 from .utils import _get_valid_shell_themes, _get_valid_icon_themes, _get_valid_gtk_themes, _get_valid_cursor_themes, _get_valid_wallpapers, wallpaper_paths, css
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
@@ -48,7 +50,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     dropdown = None
     user_theme_downloaded = True
     # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
-    interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+    # interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
     
     #This system with the txt file is really rigid, and I will probably replace it at some point.
     #Saves a python dictionary inside a plain text file with the file paths for downloaded themes. Made for easy installation and deletion.
@@ -58,31 +60,29 @@ class WardrobeWindow(Adw.ApplicationWindow):
     except Exception:
         downloaded = dict()
     current_page = 0
-    try:
-        active_gtk_theme = interface_settings.get("gtk-theme")
-        active_icon_theme = interface_settings.get("icon-theme")
-        active_cursor_theme = interface_settings.get("cursor-theme")
-        active_wallpaper = interface_settings.get("picture-uri")
+    # try:
+    #     active_gtk_theme = interface_settings.get("gtk-theme")
+    #     active_icon_theme = interface_settings.get("icon-theme")
+    #     active_cursor_theme = interface_settings.get("cursor-theme")
+    #     active_wallpaper = interface_settings.get("picture-uri")
         # active_shell_theme = interface_settings.get("name")
-        active_shell_theme = ""
-    except Exception:
-        active_shell_theme = ""
-        active_icon_theme = ""
-        active_wallpaper = ""
-        active_cursor_theme = ""
-        active_gtk_theme = ""
+    #     active_shell_theme = ""
+    # except Exception:
+    #     active_shell_theme = ""
+    #     active_icon_theme = ""
+    #     active_wallpaper = ""
+    #     active_cursor_theme = ""
+    #     active_gtk_theme = ""
 
 
         # user_theme_downloaded = False
-    active_themes = {
-        0: active_shell_theme,
-        1: active_icon_theme,
-        2: active_gtk_theme,
-        3: active_cursor_theme,
-        4: active_wallpaper
-    }
-    for item in active_themes.keys():
-        print(active_themes[item])
+    # active_themes = {
+    #     0: active_shell_theme,
+    #     1: active_icon_theme,
+    #     2: active_gtk_theme,
+    #     3: active_cursor_theme,
+    #     4: active_wallpaper
+    # }
 
     categories = [
         {"name": "Shell Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode="},
@@ -183,99 +183,100 @@ class WardrobeWindow(Adw.ApplicationWindow):
         search_box.append(scrollbox)
 
         self.notebook.append_page(search_box, Gtk.Label(label="Search"))
-        if(self.user_theme_downloaded):
-            self.theme_list = Gtk.ListBox(vexpand=True)
-            self.theme_list.add_css_class("boxed-list"); self.theme_list.add_css_class("title-4")
-            item_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
-            scrollbox = Gtk.ScrolledWindow(child=self.theme_list)
 
-            items = ["Shell Themes", "Icon Themes", "Gtk3/4 Themes", "Cursors", "Wallpaper"]
-            string_list = Gtk.StringList()
-            for item in items:
-                string_list.append(item)
-            self.dropdown = Gtk.DropDown.new_from_strings(items); self.dropdown.set_halign(Gtk.Align.START)
-            self.dropdown.connect("notify::selected", self.on_selection_changed)
-            self.on_selection_changed(self.dropdown, _)
+        # if(self.user_theme_downloaded):
+        #     self.theme_list = Gtk.ListBox(vexpand=True)
+        #     self.theme_list.add_css_class("boxed-list"); self.theme_list.add_css_class("title-4")
+        #     item_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
+        #     scrollbox = Gtk.ScrolledWindow(child=self.theme_list)
 
-            item_box.append(self.dropdown)
-            item_box.append(scrollbox)
-            self.notebook.append_page(item_box, Gtk.Label(label="Tweaks"))
-        else:
-            self.error_dialog()
+        #     items = ["Shell Themes", "Icon Themes", "Gtk3/4 Themes", "Cursors", "Wallpaper"]
+        #     string_list = Gtk.StringList()
+        #     for item in items:
+        #         string_list.append(item)
+        #     self.dropdown = Gtk.DropDown.new_from_strings(items); self.dropdown.set_halign(Gtk.Align.START)
+        #     self.dropdown.connect("notify::selected", self.on_selection_changed)
+        #     self.on_selection_changed(self.dropdown, _)
+
+        #     item_box.append(self.dropdown)
+        #     item_box.append(scrollbox)
+        #     self.notebook.append_page(item_box, Gtk.Label(label="Tweaks"))
+        # else:
+            # self.error_dialog()
   
-    first_check_button = None
-    def on_selection_changed(self, dropdown, param):
-        while(self.theme_list.get_first_child() is not None):
-            self.theme_list.remove(self.theme_list.get_first_child())
+    # first_check_button = None
+    # def on_selection_changed(self, dropdown, param):
+    #     while(self.theme_list.get_first_child() is not None):
+    #         self.theme_list.remove(self.theme_list.get_first_child())
         
-        match(self.dropdown.get_selected()):
-            case(0):
-                items = _get_valid_shell_themes()
-            case(1):
-                items = _get_valid_icon_themes()
-            case(2):
-                items = _get_valid_gtk_themes()
-            case(3):
-                items = _get_valid_cursor_themes()
-            case(4):
-                items = _get_valid_wallpapers()
+    #     match(self.dropdown.get_selected()):
+    #         case(0):
+    #             items = _get_valid_shell_themes()
+    #         case(1):
+    #             items = _get_valid_icon_themes()
+    #         case(2):
+    #             items = _get_valid_gtk_themes()
+    #         case(3):
+    #             items = _get_valid_cursor_themes()
+    #         case(4):
+    #             items = _get_valid_wallpapers()
 
-        for file_name in sorted(items): 
-            row = Gtk.ListBoxRow(vexpand=True, height_request=50) 
-            row_box = Gtk.Box()
-            check_button = Gtk.CheckButton(label=file_name, hexpand=True, margin_start=10, halign=Gtk.Align.START)
-            check_button.get_last_child().set_wrap(True) 
-            check_button.get_last_child().set_wrap_mode(Pango.WrapMode.CHAR)
-            check_button.get_last_child().set_size_request(300, -1)
-            check_button.get_last_child().set_margin_start(16)
-            row_box.append(check_button)
-            if(self.dropdown.get_selected() == 4): 
-                image_file = Gio.File.new_for_path((f"{shutil.os.path.join(wallpaper_paths[file_name], file_name)}")) 
-                image = Gtk.Picture(hexpand=True, halign=Gtk.Align.END, height_request=70, margin_top=10, margin_bottom=10, margin_end=5, file=image_file)
-                row_box.append(image)
-            if(self.active_themes[self.dropdown.get_selected()] == f"'{file_name}'"):
-                check_button.set_active(True)
-            if(self.first_check_button is None):
-                self.first_check_button = check_button
-            else:
-                check_button.set_group(self.first_check_button)
-            check_button.connect("toggled", self.change_theme, self.dropdown.get_selected(), shutil.os.path.join(wallpaper_paths[file_name], file_name) if file_name in wallpaper_paths.keys() else None)
-            row.set_child(row_box)  
-            self.theme_list.append(row)  
+    #     for file_name in sorted(items):
+    #         row = Gtk.ListBoxRow(vexpand=True, height_request=50)
+    #         row_box = Gtk.Box()
+    #         check_button = Gtk.CheckButton(label=file_name, hexpand=True, margin_start=10, halign=Gtk.Align.START)
+    #         check_button.get_last_child().set_wrap(True)
+    #         check_button.get_last_child().set_wrap_mode(Pango.WrapMode.CHAR)
+    #         check_button.get_last_child().set_size_request(300, -1)
+    #         check_button.get_last_child().set_margin_start(16)
+    #         row_box.append(check_button)
+    #         if(self.dropdown.get_selected() == 4):
+    #             image_file = Gio.File.new_for_path((f"{shutil.os.path.join(wallpaper_paths[file_name], file_name)}"))
+    #             image = Gtk.Picture(hexpand=True, halign=Gtk.Align.END, height_request=70, margin_top=10, margin_bottom=10, margin_end=5, file=image_file)
+    #             row_box.append(image)
+    #         if(self.active_themes[self.dropdown.get_selected()] == f"'{file_name}'"):
+    #             check_button.set_active(True)
+    #         if(self.first_check_button is None):
+    #             self.first_check_button = check_button
+    #         else:
+    #             check_button.set_group(self.first_check_button)
+    #         check_button.connect("toggled", self.change_theme, self.dropdown.get_selected(), shutil.os.path.join(wallpaper_paths[file_name], file_name) if file_name in wallpaper_paths.keys() else None)
+    #         row.set_child(row_box)
+    #         self.theme_list.append(row)
 
-    def change_theme(self, button, index, wallpaper_path):
+    # def change_theme(self, button, index, wallpaper_path):
         # TODO: This is an unsafe way to set the theme, will NEED revision
-        if(button.get_active()):
-            match(index):
-                case(0): #Shell themes
+    #     if(button.get_active()):
+    #         match(index):
+    #             case(0): #Shell themes
                     #shell_settings.set_string("name", button.get_parent().get_first_child().get_label())
-                    pass
-                case(1): #Icon themes
-                    self.interface_settings.set_string("icon-theme", button.get_parent().get_first_child().get_label())
-                case(2): #Gtk3/4 themes
-                    self.interface_settings.set_string("gtk-theme", button.get_parent().get_first_child().get_label())
-                case(3): #Cursors
-                    self.interface_settings.set_string("cursor-theme", button.get_parent().get_first_child().get_label())
-                case(4): #Wallpapers
-                    portal = Xdp.Portal()
-                    parent = XdpGtk4.parent_new_gtk(self)
-                    print(wallpaper_path)
-                    file = f"file://{wallpaper_path}"
-                    portal.set_wallpaper(
-                        parent,
-                        file,
-                        Xdp.WallpaperFlags.PREVIEW
-                        | Xdp.WallpaperFlags.BACKGROUND
-                        | Xdp.WallpaperFlags.LOCKSCREEN,
-                        None,
-                        self.on_wallpaper_set
-                    )
-    def on_wallpaper_set(self, _portal, result):
-        success = _portal.set_wallpaper_finish(result)
-        if success:
-            print("Wallpaper set successfully")
-        else:
-            print("Could not set wallpaper")
+    #                 pass
+    #             case(1): #Icon themes
+    #                 self.interface_settings.set_string("icon-theme", button.get_parent().get_first_child().get_label())
+    #             case(2): #Gtk3/4 themes
+    #                 self.interface_settings.set_string("gtk-theme", button.get_parent().get_first_child().get_label())
+    #             case(3): #Cursors
+    #                 self.interface_settings.set_string("cursor-theme", button.get_parent().get_first_child().get_label())
+    #             case(4): #Wallpapers
+    #                 portal = Xdp.Portal()
+    #                 parent = XdpGtk4.parent_new_gtk(self)
+    #                 print(wallpaper_path)
+    #                 file = f"file://{wallpaper_path}"
+    #                 portal.set_wallpaper(
+    #                     parent,
+    #                     file,
+    #                     Xdp.WallpaperFlags.PREVIEW
+    #                     | Xdp.WallpaperFlags.BACKGROUND
+    #                     | Xdp.WallpaperFlags.LOCKSCREEN,
+    #                     None,
+    #                     self.on_wallpaper_set
+    #                 )
+    # def on_wallpaper_set(self, _portal, result):
+    #     success = _portal.set_wallpaper_finish(result)
+    #     if success:
+    #         print("Wallpaper set successfully")
+    #     else:
+    #         print("Could not set wallpaper")
     def on_search(self, search_entry):
         self.query = search_entry.get_text().strip()
         if(self.query):
