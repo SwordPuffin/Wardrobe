@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, subprocess, ast, zipfile, tarfile
+import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile, tarfile
 
 gi.require_version('WebKit', '6.0')
 gi.require_version("Gtk", "4.0")
@@ -47,6 +47,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
     selected = "down"
     dropdown = None
     user_theme_downloaded = True
+    # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
+    interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
     
     #This system with the txt file is really rigid, and I will probably replace it at some point.
     #Saves a python dictionary inside a plain text file with the file paths for downloaded themes. Made for easy installation and deletion.
@@ -56,16 +58,22 @@ class WardrobeWindow(Adw.ApplicationWindow):
     except Exception:
         downloaded = dict()
     current_page = 0
-    
     try:
-        active_gtk_theme = subprocess.run(["flatpak-spawn", "--host", "gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"], check=True, text=True, stdout=subprocess.PIPE).stdout.strip()
-        active_icon_theme = subprocess.run(["flatpak-spawn", "--host", "gsettings", "get", "org.gnome.desktop.interface", "icon-theme"], check=True, text=True, stdout=subprocess.PIPE).stdout.strip()
-        active_cursor_theme = subprocess.run(["flatpak-spawn", "--host", "gsettings", "get", "org.gnome.desktop.interface", "cursor-theme"], check=True, text=True, stdout=subprocess.PIPE).stdout.strip()
-        active_wallpaper = "'"+shutil.os.path.basename(subprocess.run(["flatpak-spawn", "--host", "gsettings", "get", "org.gnome.desktop.background", "picture-uri"], check=True, text=True, stdout=subprocess.PIPE).stdout.strip())
-        active_shell_theme = subprocess.run(["flatpak-spawn", "--host", "gsettings", "get", "org.gnome.shell.extensions.user-theme", "name"], check=True, text=True, stdout=subprocess.PIPE).stdout.strip()
+        active_gtk_theme = interface_settings.get("gtk-theme")
+        active_icon_theme = interface_settings.get("icon-theme")
+        active_cursor_theme = interface_settings.get("cursor-theme")
+        active_wallpaper = interface_settings.get("picture-uri")
+        # active_shell_theme = interface_settings.get("name")
+        active_shell_theme = ""
     except Exception:
         active_shell_theme = ""
-        user_theme_downloaded = False
+        active_icon_theme = ""
+        active_wallpaper = ""
+        active_cursor_theme = ""
+        active_gtk_theme = ""
+
+
+        # user_theme_downloaded = False
     active_themes = {
         0: active_shell_theme,
         1: active_icon_theme,
@@ -73,6 +81,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         3: active_cursor_theme,
         4: active_wallpaper
     }
+    for item in active_themes.keys():
+        print(active_themes[item])
 
     categories = [
         {"name": "Shell Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode="},
@@ -238,13 +248,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
         if(button.get_active()):
             match(index):
                 case(0): #Shell themes
-                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.shell.extensions.user-theme", "name", button.get_parent().get_first_child().get_label()], check=True)
+                    #shell_settings.set_string("name", button.get_parent().get_first_child().get_label())
+                    pass
                 case(1): #Icon themes
-                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", button.get_parent().get_first_child().get_label()], check=True)
+                    self.interface_settings.set_string("icon-theme", button.get_parent().get_first_child().get_label())
                 case(2): #Gtk3/4 themes
-                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", button.get_parent().get_first_child().get_label()], check=True)
+                    self.interface_settings.set_string("gtk-theme", button.get_parent().get_first_child().get_label())
                 case(3): #Cursors
-                    subprocess.run(["flatpak-spawn", "--host", "gsettings", "set", "org.gnome.desktop.interface", "cursor-theme", button.get_parent().get_first_child().get_label()], check=True)
+                    self.interface_settings.set_string("cursor-theme", button.get_parent().get_first_child().get_label())
                 case(4): #Wallpapers
                     portal = Xdp.Portal()
                     parent = XdpGtk4.parent_new_gtk(self)
@@ -539,4 +550,3 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     def on_view_button_clicked(self, button, theme_url):
         webbrowser.open(theme_url)
-
