@@ -37,13 +37,15 @@ class WardrobeWindow(Adw.ApplicationWindow):
     notebook = Gtk.Template.Child()
     spinner = Gtk.Template.Child()
     menus = Gtk.Template.Child()
-    xdg_data_home = shutil.os.getenv("FLATPAK_USER_DIR", shutil.os.path.expanduser("~/.local/share"))
+    if(GLib.getenv("HOST_XDG_DATA_HOME") == None):
+        GLib.setenv("HOST_XDG_DATA_HOME", shutil.os.path.join(GLib.getenv("HOME"), ".local", "share"), True)
+    data_dir = GLib.getenv("HOST_XDG_DATA_HOME")
     picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
     folders = {
-        0: f"{xdg_data_home}/themes/",
-        1: f"{xdg_data_home}/icons/",
-        2: f"{xdg_data_home}/themes/",
-        3: f"{xdg_data_home}/icons/",
+        0: f"{data_dir}/themes/",
+        1: f"{data_dir}/icons/",
+        2: f"{data_dir}/themes/",
+        3: f"{data_dir}/icons/",
         4: f"{picture_dir}/",
         5: f"{GLib.get_user_data_dir()}"
     }
