@@ -69,6 +69,11 @@ msgstr "Zoeken naar trefwoord"
 msgid "translator-credits"
 msgstr "Heimen Stoffels <vistausss@fastmail.com>"
 
+#Testing something out, replace with actual translation -Swordpuffin
+#: src/window.py:189
+# msgid "Search"
+# msgstr "searchindutch"
+
 #: src/window.ui:23
 msgid "Menu"
 msgstr "Menu"

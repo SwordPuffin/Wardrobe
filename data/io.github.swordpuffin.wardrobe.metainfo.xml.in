@@ -44,6 +44,15 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.2" date="2025-03-23">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.2</url>
+      <description translate="no">
+        <p>Wardrobe v1.0.2</p>
+        <ul>
+          <li>Added Dutch translations</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.1" date="2025-03-19">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.1</url>
       <description translate="no">

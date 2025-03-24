@@ -112,7 +112,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             category_box = Gtk.ListBox(margin_top=10, margin_bottom=10, margin_start=15, margin_end=15, selection_mode=Gtk.SelectionMode.NONE)
             category_box.add_css_class("boxed-list")
             scrollbox = Gtk.ScrolledWindow(vexpand=True, child=category_box)
-            self.notebook.append_page(scrollbox, Gtk.Label(label=category["name"]))
+            self.notebook.append_page(scrollbox, Gtk.Label(label=_(category["name"])))
             category['box'] = category_box
             
         self.menus.connect('notify::selected-item', self.on_type_changed)
@@ -134,7 +134,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         dialog.add_css_class("warning")
             
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        head = Gtk.Label(xalign=0.5, label="Changing the shell theme requires the\nuser-theme package for your distribution", margin_top=8)
+        head = Gtk.Label(xalign=0.5, label=_("Changing the shell theme requires the\nuser-theme package for your distribution"), margin_top=8)
         head.add_css_class("heading")
         box.append(head)
         listbox = Gtk.ListBox(margin_top=12, margin_bottom=12, margin_start=12, margin_end=12); listbox.add_css_class("boxed-list")
@@ -186,7 +186,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         scrollbox = Gtk.ScrolledWindow(child=self.search_results)
         search_box.append(scrollbox)
 
-        self.notebook.append_page(search_box, Gtk.Label(label="Search"))
+        self.notebook.append_page(search_box, Gtk.Label(label=_("Search")))
 
         # if(self.user_theme_downloaded):
         #     self.theme_list = Gtk.ListBox(vexpand=True)
@@ -335,7 +335,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             self.add_theme_to_list(title, thumbnail_url, creator, category_box, downloads, theme_url, download_links, download_names, description, self.category_index(typeid), rating)
         if(num_added < 10):
             return
-        self.next_page_button = Gtk.Button(label="Next Page", vexpand=True, margin_top=10, visible=False)
+        self.next_page_button = Gtk.Button(label=_("Next Page"), vexpand=True, margin_top=10, visible=False)
         category_box.append(self.next_page_button)
         self.next_page_button.connect("clicked", self.on_next_page_clicked, category_box)
         
@@ -352,9 +352,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
         row = Adw.ExpanderRow(visible=False)
         category_box.append(row)
 
-        label = Gtk.Label(label=title, xalign=0, wrap=True, width_request=320, margin_start=12)
+        label = Gtk.Label(label=_(title), xalign=0, wrap=True, width_request=320, margin_start=12)
         label.add_css_class("title-2")
-        creator_label = Gtk.Label(label=creator + "\nDownloads: " + downloads, xalign=0, margin_start=12)
+        creator_label = Gtk.Label(label=_(creator + "\nDownloads: " + downloads), xalign=0, margin_start=12)
         creator_label.add_css_class("creator-title")
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=10)
         label_box.append(label)
@@ -369,7 +369,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         button_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         button_box.add_css_class("title-4")
 
-        rating_box = Gtk.Button(child=Gtk.Label(label=str(rating) + " ★"))
+        rating_box = Gtk.Button(child=Gtk.Label(label=_(str(rating) + " ★")))
         if(rating >= 8):
             rating_box.add_css_class("success")
         elif(rating >= 6 and rating < 8):
@@ -377,11 +377,11 @@ class WardrobeWindow(Adw.ApplicationWindow):
         elif(rating < 6):
             rating_box.add_css_class("destructive-action")
         
-        download_button = Gtk.Button(label="Download or Delete")
+        download_button = Gtk.Button(label=_("Download or Delete"))
         download_button.connect("clicked", self.download_item, download_links, download_names, index)
         download_button.add_css_class(random.choice(["linear-1", "linear-2", "linear-3", "linear-4", "linear-5"]))
         
-        browser_button = Gtk.Button(label="View in Browser")
+        browser_button = Gtk.Button(label=_("View in Browser"))
         browser_button.add_css_class("suggested-action")
         browser_button.connect("clicked", self.on_view_button_clicked, theme_url)
 
@@ -423,7 +423,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     def download_item(self, button, download_links, download_names, index):
         dialog = Gtk.MessageDialog(transient_for=self, modal=True, buttons=Gtk.ButtonsType.CLOSE, title="Select Download Link")
         dialog.set_default_size(600, 600)
-        label = Gtk.Label(label="*Larger files may cause temporary freezes, just wait until the download completes", wrap=True)
+        label = Gtk.Label(label=_("*Larger files may cause temporary freezes, just wait until the download completes", wrap=True))
         label.add_css_class("warning")
         dialog.get_content_area().append(label)
 
@@ -434,15 +434,15 @@ class WardrobeWindow(Adw.ApplicationWindow):
         count = 0
         for link in download_links:
             row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-            label = Gtk.Label(label=download_names[count], xalign=0, margin_start=10)
+            label = Gtk.Label(label=_(download_names[count]), xalign=0, margin_start=10)
             label.add_css_class("title-4")
 
             if(label.get_label() in self.downloaded.keys()):
-                button = Gtk.Button(label="Delete", halign=Gtk.Align.END, hexpand=True)
+                button = Gtk.Button(label=_("Delete"), halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("destructive-action")
                 button.connect("clicked", self.delete_item, label.get_label(), link, self.category_index(index))
             else:
-                button = Gtk.Button(label="Download", halign=Gtk.Align.END, hexpand=True)
+                button = Gtk.Button(label=_("Download"), halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("suggested-action")
                 button.connect("clicked", self.on_download_button_clicked, link, self.category_index(index), download_names[count])
             row.append(label)
@@ -503,7 +503,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.update_button_to_delete(button, name, link, index)
 
     def update_button_to_delete(self, button, name, link, index):
-        button.set_label("Delete")
+        button.set_label(_("Delete"))
         button.remove_css_class("suggested-action")
         button.add_css_class("destructive-action")
         button.disconnect_by_func(self.on_download_button_clicked)
@@ -525,7 +525,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.update_button_to_download(button, name, link, index)
         
     def update_button_to_download(self, button, name, link, index):
-        button.set_label("Download")
+        button.set_label(_("Download"))
         button.add_css_class("suggested-action")
         button.remove_css_class("destructive-action")
         button.disconnect_by_func(self.delete_item)
