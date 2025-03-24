@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile, tarfile
+import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile, tarfile, threading, asyncio
 
 gi.require_version('WebKit', '6.0')
 gi.require_version("Gtk", "4.0")
@@ -39,8 +39,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
     menus = Gtk.Template.Child()
     if(GLib.getenv("HOST_XDG_DATA_HOME") == None):
         GLib.setenv("HOST_XDG_DATA_HOME", shutil.os.path.join(GLib.getenv("HOME"), ".local", "share"), True)
-    data_dir = GLib.getenv("HOST_XDG_DATA_HOME")
-    picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
+    data_dir = GLib.getenv("HOST_XDG_DATA_HOME") #Should be ~/.local/share
+    picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) #Typically ~/Pictures
     folders = {
         0: f"{data_dir}/themes/",
         1: f"{data_dir}/icons/",
@@ -117,7 +117,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             
         self.menus.connect('notify::selected-item', self.on_type_changed)
         items = Gtk.StringList()
-        for item in ["Downloaded", "Alphabetical", "Highest Rated", "New"]:
+        for item in ["Most Downloaded", "Alphabetical", "Highest Rated", "New"]:
             items.append(item)
         self.menus.set_model(items)
         self.current_page = 0
@@ -141,7 +141,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         box.append(listbox)
         commands = ["sudo dnf install gnome-shell-extension-user-theme", "sudo apt install gnome-shell-extensions", "sudo pacman -S gnome-shell-extensions"]
         for item in commands:
-            label = Gtk.Label(label=item, margin_top=8, margin_bottom=8, margin_start=8, margin_end=8, wrap=True, xalign=0, selectable=True)
+            label = Gtk.Label(label=_(item), margin_top=8, margin_bottom=8, margin_start=8, margin_end=8, wrap=True, xalign=0, selectable=True)
             label.add_css_class("heading")
             row = Gtk.ListBoxRow(selectable=False, child=label)
             listbox.append(row)
@@ -181,7 +181,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         search_entry.connect("activate", self.on_search)
         search_box.append(search_entry)
 
-        self.search_results = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        self.search_results = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, vexpand=True)
         self.search_results.add_css_class("boxed-list")
         scrollbox = Gtk.ScrolledWindow(child=self.search_results)
         search_box.append(scrollbox)
@@ -204,7 +204,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         #     item_box.append(self.dropdown)
         #     item_box.append(scrollbox)
-        #     self.notebook.append_page(item_box, Gtk.Label(label="Tweaks"))
+        #     self.notebook.append_page(item_box, Gtk.Label(label="_(Tweaks")))
         # else:
             # self.error_dialog()
   
@@ -228,7 +228,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     #     for file_name in sorted(items):
     #         row = Gtk.ListBoxRow(vexpand=True, height_request=50)
     #         row_box = Gtk.Box()
-    #         check_button = Gtk.CheckButton(label=file_name, hexpand=True, margin_start=10, halign=Gtk.Align.START)
+    #         check_button = Gtk.CheckButton(label=_(file_name), hexpand=True, margin_start=10, halign=Gtk.Align.START)
     #         check_button.get_last_child().set_wrap(True)
     #         check_button.get_last_child().set_wrap_mode(Pango.WrapMode.CHAR)
     #         check_button.get_last_child().set_size_request(300, -1)
@@ -293,6 +293,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 self.search_results.remove(self.search_results.get_first_child())
                 
             url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&categories=134x386x366x107x261"
+            self.loading(True)
             self.grab_theme_params(url, self.search_results)
 
     def fetch_themes(self, index, page, action):
@@ -306,10 +307,13 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.grab_theme_params(api_url, category_box)
 
     def grab_theme_params(self, api_url, category_box):
-        self.loading(True)
+        print("start")
         response = self.soup_get(api_url)
+        print("end")
         root = ET.fromstring(response)
-        num_added = 0
+        if(int(root.findall(".//meta")[0].find("itemsperpage").text) == 0):
+            self.no_results_found(category_box)
+            return
         for item in root.findall(".//content"):
             title = item.find("name").text if item.find("name") is not None else "Unknown"
             thumbnail_url = item.find("previewpic1").text if item.find("previewpic1") is not None else ""
@@ -331,13 +335,18 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 if(download_link is not None and download_link.text):
                     download_links.append(download_link.text)
                     download_names.append(download_name.text)
-            num_added += 1
             self.add_theme_to_list(title, thumbnail_url, creator, category_box, downloads, theme_url, download_links, download_names, description, self.category_index(typeid), rating)
-        if(num_added < 10):
+        if(int(root.findall(".//meta")[0].find("itemsperpage").text) < 10):
             return
+        self.loading(True)
         self.next_page_button = Gtk.Button(label=_("Next Page"), vexpand=True, margin_top=10, visible=False)
         category_box.append(self.next_page_button)
         self.next_page_button.connect("clicked", self.on_next_page_clicked, category_box)
+
+    def no_results_found(self, box):
+        self.loading(False)
+        row = Gtk.ListBoxRow(child=Gtk.Label(label=_("No results found :(")), selectable=False, margin_top=10); row.add_css_class("title-4")
+        box.append(row)
         
     def on_next_page_clicked(self, button, category_box):
         self.current_page += 1
@@ -354,7 +363,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         label = Gtk.Label(label=_(title), xalign=0, wrap=True, width_request=320, margin_start=12)
         label.add_css_class("title-2")
-        creator_label = Gtk.Label(label=_(creator + "\nDownloads: " + downloads), xalign=0, margin_start=12)
+        creator_label = Gtk.Label(label=_(creator) + "\nDownloads: " + downloads, xalign=0, margin_start=12)
         creator_label.add_css_class("creator-title")
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=10)
         label_box.append(label)
@@ -369,7 +378,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         button_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         button_box.add_css_class("title-4")
 
-        rating_box = Gtk.Button(child=Gtk.Label(label=_(str(rating) + " ★")))
+        rating_box = Gtk.Button(child=Gtk.Label(label=_(str(rating)) + " ★"))
         if(rating >= 8):
             rating_box.add_css_class("success")
         elif(rating >= 6 and rating < 8):
@@ -423,7 +432,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     def download_item(self, button, download_links, download_names, index):
         dialog = Gtk.MessageDialog(transient_for=self, modal=True, buttons=Gtk.ButtonsType.CLOSE, title="Select Download Link")
         dialog.set_default_size(600, 600)
-        label = Gtk.Label(label=_("*Larger files may cause temporary freezes, just wait until the download completes", wrap=True))
+        label = Gtk.Label(label=_("*Larger files may cause temporary freezes, just wait until the download completes"), wrap=True)
         label.add_css_class("warning")
         dialog.get_content_area().append(label)
 
@@ -503,7 +512,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.update_button_to_delete(button, name, link, index)
 
     def update_button_to_delete(self, button, name, link, index):
-        button.set_label(_("Delete"))
+        button.set_label("Delete")
         button.remove_css_class("suggested-action")
         button.add_css_class("destructive-action")
         button.disconnect_by_func(self.on_download_button_clicked)
@@ -525,7 +534,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.update_button_to_download(button, name, link, index)
         
     def update_button_to_download(self, button, name, link, index):
-        button.set_label(_("Download"))
+        button.set_label("Download")
         button.add_css_class("suggested-action")
         button.remove_css_class("destructive-action")
         button.disconnect_by_func(self.delete_item)
@@ -534,7 +543,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     def on_type_changed(self, dropdown, _pspec):
         chosen_type = dropdown.props.selected_item.get_string()
         match(chosen_type):
-            case("Downloaded"):
+            case("Most Downloaded"):
                 self.selected = "down"
             case("Alphabetical"):
                 self.selected = "alpha"
