@@ -44,6 +44,17 @@
   </screenshots>
 
   <releases>
+    <release version="1.0.3" date="2025-04-24">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.3</url>
+      <description translate="no">
+        <p>Wardrobe v1.0.3</p>
+        <ul>
+          <li>Total UI overhaul</li>
+          <li>Installed themes should work properly more often</li>
+          <li>General bug fixes</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.2" date="2025-03-23">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.2</url>
       <description translate="no">

@@ -29,7 +29,7 @@ gi.require_version("Soup", "3.0")
 # from gi.repository import Xdp, XdpGtk4
 
 from gi.repository import Gtk, GLib, Gio, Gdk, Adw, WebKit, Soup, Pango
-from .utils import _get_valid_shell_themes, _get_valid_icon_themes, _get_valid_gtk_themes, _get_valid_cursor_themes, _get_valid_wallpapers, wallpaper_paths, css
+from .utils import _get_valid_shell_themes, _get_valid_icon_themes, _get_valid_gtk_themes, _get_valid_cursor_themes, _get_valid_wallpapers, arrange_folders, wallpaper_paths, css
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
@@ -53,6 +53,10 @@ class WardrobeWindow(Adw.ApplicationWindow):
     selected = "down"
     dropdown = None
     user_theme_downloaded = True
+    # theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
+    search_theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
+    error_label = Gtk.Label(label=_("No results found :("))
+    error_label.add_css_class("error"); error_label.add_css_class("title-4")
     # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
     # interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
     
@@ -104,17 +108,16 @@ class WardrobeWindow(Adw.ApplicationWindow):
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
         )
+
         self.set_title("")
         self.notebook.remove_css_class("frame")
         self.set_default_size(600, 600)
         
         for category in self.categories:
-            category_box = Gtk.ListBox(margin_top=10, margin_bottom=10, margin_start=15, margin_end=15, selection_mode=Gtk.SelectionMode.NONE)
-            category_box.add_css_class("boxed-list")
+            category_box = Gtk.Box(margin_top=10, margin_bottom=10, margin_start=15, margin_end=15, orientation=Gtk.Orientation.VERTICAL)
             scrollbox = Gtk.ScrolledWindow(vexpand=True, child=category_box)
             self.notebook.append_page(scrollbox, Gtk.Label(label=_(category["name"])))
             category['box'] = category_box
-            
         self.menus.connect('notify::selected-item', self.on_type_changed)
         items = Gtk.StringList()
         for item in ["Most Downloaded", "Alphabetical", "Highest Rated", "New"]:
@@ -124,7 +127,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         
         self.add_search_and_tweak_pages()
         self.notebook.connect("switch-page", self.on_tab_changed)
-    
+
     def error_dialog(self):
         dialog = Gtk.Dialog(
             title='Warning',
@@ -155,13 +158,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 return(0)
             case(386 | 132):
                 return(1)
-            case(366 | 135):
+            case(366 | 135 | 136):
                 return(2)
             case(107):
                 return(3)
-            case(261 | 299):
+            case(261 | 299 | 360):
                 return(4)
             case(_):
+                print(index)
                 return(index)
     
     def soup_get(self, api_url):
@@ -175,18 +179,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
         return response_text 
 
     def add_search_and_tweak_pages(self):
-        search_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
+        self.search_results = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
+        scrollbox = Gtk.ScrolledWindow(child=self.search_results)
 
         search_entry = Gtk.SearchEntry(placeholder_text="Search...")
         search_entry.connect("activate", self.on_search)
-        search_box.append(search_entry)
+        self.search_results.append(search_entry)
 
-        self.search_results = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, vexpand=True)
-        self.search_results.add_css_class("boxed-list")
-        scrollbox = Gtk.ScrolledWindow(child=self.search_results)
-        search_box.append(scrollbox)
-
-        self.notebook.append_page(search_box, Gtk.Label(label=_("Search")))
+        self.notebook.append_page(scrollbox, Gtk.Label(label=_("Search")))
 
         # if(self.user_theme_downloaded):
         #     self.theme_list = Gtk.ListBox(vexpand=True)
@@ -288,12 +288,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
             print(f"Search for: {self.query}")
             self.search_results.set_vexpand(True)
             self.current_page = 0
-            
-            while(self.search_results.get_first_child() is not None):
-                self.search_results.remove(self.search_results.get_first_child())
+            if(self.search_theme_grid.get_parent()):
+                self.search_theme_grid.get_parent().remove(self.search_theme_grid)
+            while(self.search_theme_grid.get_first_child() is not None):
+                self.search_theme_grid.remove(self.search_theme_grid.get_first_child())
                 
             url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&categories=134x386x366x107x261"
             self.loading(True)
+            self.search_results.append(self.search_theme_grid)
             self.grab_theme_params(url, self.search_results)
 
     def fetch_themes(self, index, page, action):
@@ -307,10 +309,25 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.grab_theme_params(api_url, category_box)
 
     def grab_theme_params(self, api_url, category_box):
-        print("start")
+        self.loading(True)
+        print("start loading xml")
         response = self.soup_get(api_url)
-        print("end")
+        print("finished loading xml")
+
+        flowbox_in_theme_grid = False
+        for child in category_box:
+            if(str(type(child)) == "<class 'gi.repository.Gtk.FlowBox'>"):
+                theme_grid = child
+                flowbox_in_theme_grid = True
+
+        if(not flowbox_in_theme_grid):
+            theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
+            category_box.append(theme_grid)
+
         root = ET.fromstring(response)
+        for child in category_box:
+            if(str(type(child)) == "<class 'gi.repository.Gtk.Button'>"):
+                category_box.remove(child)
         if(int(root.findall(".//meta")[0].find("itemsperpage").text) == 0):
             self.no_results_found(category_box)
             return
@@ -329,53 +346,73 @@ class WardrobeWindow(Adw.ApplicationWindow):
             typeid = item.find("typeid").text if item.find("typeid") is not None else 0 #Some items don't have typeids for some reason???
             download_links = []
             download_names = []
-            for i in range(1, 11):  # Maximum of 10 download links
+            for i in range(1, 25):  # Maximum of 24 download links
+                if(item.find(f"downloadlink{i}") is None):
+                    break
                 download_link = item.find(f"downloadlink{i}")
                 download_name = item.find(f"downloadname{i}")
-                if(download_link is not None and download_link.text):
+                if(download_link.text):
                     download_links.append(download_link.text)
                     download_names.append(download_name.text)
-            self.add_theme_to_list(title, thumbnail_url, creator, category_box, downloads, theme_url, download_links, download_names, description, self.category_index(typeid), rating)
+            image_links = []
+            for z in range(1, 6):
+                if(item.find(f"previewpic{z}") is not None):
+                    image_links.append(item.find(f"previewpic{z}").text)
+                else:
+                    break
+            self.add_theme_to_list(theme_grid, title, creator, downloads, theme_url, download_links, download_names, description, self.category_index(typeid), rating, image_links)
         if(int(root.findall(".//meta")[0].find("itemsperpage").text) < 10):
+            self.loading(False)
             return
-        self.loading(True)
         self.next_page_button = Gtk.Button(label=_("Next Page"), vexpand=True, margin_top=10, visible=False)
         category_box.append(self.next_page_button)
         self.next_page_button.connect("clicked", self.on_next_page_clicked, category_box)
 
     def no_results_found(self, box):
         self.loading(False)
-        row = Gtk.ListBoxRow(child=Gtk.Label(label=_("No results found :(")), selectable=False, margin_top=10); row.add_css_class("title-4")
-        box.append(row)
+        box.append(self.error_label)
         
     def on_next_page_clicked(self, button, category_box):
+        button.set_visible(False)
         self.current_page += 1
+        vadj = category_box.get_parent().get_parent().get_vadjustment()
         if(self.notebook.get_current_page() != 5):
             self.fetch_themes(self.notebook.get_current_page(), self.current_page, "_")
         else:
             url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&categories=134x386x366x107x261"
             self.grab_theme_params(url, self.search_results)
-        button.set_sensitive(False); category_box.remove(button.get_parent())
+        GLib.idle_add(self.scroll_to_original_pos, category_box.get_parent().get_parent(), vadj.get_value()) #For vertical position in scrolled window to not reset
+        category_box.remove(button)
         
-    def add_theme_to_list(self, title, thumbnail_url, creator, category_box, downloads, theme_url, download_links, download_names, description, index, rating):
-        row = Adw.ExpanderRow(visible=False)
-        category_box.append(row)
+    def scroll_to_original_pos(self, scrolled_window, vadj):
+        scrolled_window.get_vadjustment().set_value(vadj)
 
-        label = Gtk.Label(label=_(title), xalign=0, wrap=True, width_request=320, margin_start=12)
+    def add_theme_to_list(self, theme_grid, title, creator, downloads, theme_url, download_links, download_names, description, index, rating, image_links):
+        theme_box = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL, visible=False)
+
+        label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True, width_request=150)
         label.add_css_class("title-2")
-        creator_label = Gtk.Label(label=_(creator) + "\nDownloads: " + downloads, xalign=0, margin_start=12)
+        creator_label = Gtk.Label(label=_(creator) + "\nDownloads: " + downloads, justify=Gtk.Justification.CENTER, margin_bottom=12)
         creator_label.add_css_class("creator-title")
+
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=10)
         label_box.append(label)
         label_box.append(creator_label)
-        row.add_prefix(label_box)
+        theme_box.append(label_box)
 
-        if(thumbnail_url):
-            self.get_image_from_url(thumbnail_url, row)
+        carousel = Adw.Carousel(hexpand=True, halign=Gtk.Align.CENTER, margin_top=8, allow_scroll_wheel=False)
+        for image in image_links:
+            self.get_image_from_url(image, _, carousel, theme_box)
 
-        nested_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        navigation_box = Gtk.Box()
+        navigation_box.append(carousel)
 
-        button_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER)
+        carousel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        carousel_box.append(navigation_box); carousel_box.append(indicators)
+        carousel.add_css_class("rounded")
+
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER, spacing=10, margin_bottom=5)
         button_box.add_css_class("title-4")
 
         rating_box = Gtk.Button(child=Gtk.Label(label=_(str(rating)) + " ★"))
@@ -388,43 +425,59 @@ class WardrobeWindow(Adw.ApplicationWindow):
         
         download_button = Gtk.Button(label=_("Download or Delete"))
         download_button.connect("clicked", self.download_item, download_links, download_names, index)
-        download_button.add_css_class(random.choice(["linear-1", "linear-2", "linear-3", "linear-4", "linear-5"]))
+        download_button.add_css_class("accent")
         
         browser_button = Gtk.Button(label=_("View in Browser"))
         browser_button.add_css_class("suggested-action")
         browser_button.connect("clicked", self.on_view_button_clicked, theme_url)
-
         button_box.append(rating_box); button_box.append(download_button); button_box.append(browser_button)
 
         description_label = WebKit.WebView(hexpand=True)
         description_label.load_html(description)
-        rounded_frame = Gtk.Frame(child=description_label)
-        nested_box.append(button_box)
-        nested_box.append(rounded_frame)
-        row.add_row(child=nested_box)
+        description_label.add_css_class("description")
+        if(len(image_links) > 1):
+            prev_button = Gtk.Button(label="<", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, hexpand=True, margin_end=12, margin_start=12); navigation_box.prepend(prev_button)
+            prev_button.add_css_class("circular")
+            next_button = Gtk.Button(label=">", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, hexpand=True, margin_start=12, margin_end=12); navigation_box.append(next_button)
+            next_button.add_css_class("circular")
+            prev_button.connect("clicked", self.on_prev_clicked, carousel)
+            next_button.connect("clicked", self.on_next_clicked, carousel)
+        rounded_frame = Gtk.Frame(child=description_label, height_request=150, margin_bottom=12, margin_start=12, margin_end=12)
+        theme_box.append(rounded_frame)
+        theme_box.append(button_box)
+        theme_box.prepend(carousel_box)
+        cell = Gtk.Frame(child=theme_box); cell.add_css_class("card")
+        theme_grid.insert(cell, -1)
 
-    def on_image_recieved(self, session, result, message, row):
+    def on_prev_clicked(self, button, carousel):
+        index = carousel.get_position()
+        if(index == 0):
+            index = carousel.get_n_pages()
+        carousel.scroll_to(carousel.get_nth_page(index - 1), 250)
+
+    def on_next_clicked(self, button, carousel):
+        index = carousel.get_position()
+        if(index < carousel.get_n_pages() - 1):
+            carousel.scroll_to(carousel.get_nth_page(index + 1), 250)
+        else:
+            index = 0
+            carousel.scroll_to(carousel.get_nth_page(0), 250)
+
+    def get_carousel_images(self, session, result, message, carousel, theme_box):
         bytes = session.send_and_read_finish(result)
         if(message.get_status() != Soup.Status.OK):
             raise Exception(f"Got {message.get_status()}, {message.get_reason_phrase()}")
-        thumbnail_image = Gtk.Image.new_from_paintable(Gdk.Texture.new_from_bytes(bytes))
-        thumbnail_image.set_pixel_size(150)
-        thumbnail_image_frame = Gtk.Frame(child=thumbnail_image, margin_top=10, margin_bottom=10, margin_end=10)
-        thumbnail_image_frame.add_css_class("rounded")
-        row.add_suffix(thumbnail_image_frame)
-        row.set_visible(True)
-        self.next_page_button.set_visible(True)
+        image = Gtk.Image.new_from_paintable(Gdk.Texture.new_from_bytes(bytes))
+        image.set_pixel_size(260)
+        carousel.prepend(image)
         self.loading(False)
+        self.next_page_button.set_visible(True)
+        theme_box.set_visible(True)
 
-    def get_image_from_url(self, url, row):
+    def get_image_from_url(self, url, row, carousel, theme_box):
         session = Soup.Session()
-        message = Soup.Message(
-            method="GET",
-            uri=GLib.Uri.parse(url, GLib.UriFlags.NONE),
-        )
-        session.send_and_read_async(
-            message, GLib.PRIORITY_DEFAULT, None, self.on_image_recieved, message, row
-        )
+        message = Soup.Message(method="GET", uri=GLib.Uri.parse(url, GLib.UriFlags.NONE))
+        session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.get_carousel_images, message, carousel, theme_box)
 
     def loading(self, activate):
         self.spinner.set_spinning(activate)
@@ -434,7 +487,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         dialog.set_default_size(600, 600)
         label = Gtk.Label(label=_("*Larger files may cause temporary freezes, just wait until the download completes"), wrap=True)
         label.add_css_class("warning")
-        dialog.get_content_area().append(label)
+        info_label = Gtk.Label(label=_(f"<b>Downloads will be sent to:  {self.folders[self.category_index(index)]}</b>"), use_markup=True)
+        dialog.get_content_area().append(label); dialog.get_content_area().append(info_label)
 
         listbox = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         scroll = Gtk.ScrolledWindow(vexpand=True, child=listbox)
@@ -483,6 +537,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
                         # Get the head folder or file
                         head_folder = member.split('/')[0]
                         head_folders.add(shutil.os.path.join(folder_path, head_folder))
+                    for item in head_folders:
+                        arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
                 shutil.os.remove(file_path)
                 print(f'ZIP file extracted successfully to {folder_path}')
             elif(tarfile.is_tarfile(file_path)):
@@ -492,6 +548,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
                         # Get the head folder or file
                         head_folder = member.split('/')[0]
                         head_folders.add(shutil.os.path.join(folder_path, head_folder))
+                    for item in head_folders:
+                        arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
                 shutil.os.remove(file_path)
                 print(f'TAR file extracted successfully to {folder_path}')
             elif(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg"])):

@@ -29,8 +29,6 @@ git clone https://github.com/SwordPuffin/Wardrobe
 Then, in Builder you can add it to your projects.
 
 ---
-## Contact
-I (Swordpuffin) can be reached at nathan.c.perlman@gmail.com for any queries or concerns, my preferred language is English but I can get by in French.
 
 
 
