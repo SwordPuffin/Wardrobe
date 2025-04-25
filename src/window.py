@@ -53,7 +53,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
     selected = "down"
     dropdown = None
     user_theme_downloaded = True
-    # theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
     search_theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
     error_label = Gtk.Label(label=_("No results found :("))
     error_label.add_css_class("error"); error_label.add_css_class("title-4")
@@ -165,7 +164,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             case(261 | 299 | 360):
                 return(4)
             case(_):
-                print(index)
+                print("missing index: " + str(index))
                 return(index)
     
     def soup_get(self, api_url):
@@ -319,15 +318,13 @@ class WardrobeWindow(Adw.ApplicationWindow):
             if(str(type(child)) == "<class 'gi.repository.Gtk.FlowBox'>"):
                 theme_grid = child
                 flowbox_in_theme_grid = True
-
+            elif(str(type(child)) == "<class 'gi.repository.Gtk.Button'>" or str(type(child)) == "<class 'gi.repository.Gtk.Label'>"):
+                category_box.remove(child)
         if(not flowbox_in_theme_grid):
             theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
             category_box.append(theme_grid)
 
         root = ET.fromstring(response)
-        for child in category_box:
-            if(str(type(child)) == "<class 'gi.repository.Gtk.Button'>"):
-                category_box.remove(child)
         if(int(root.findall(".//meta")[0].find("itemsperpage").text) == 0):
             self.no_results_found(category_box)
             return
@@ -382,7 +379,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
             url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&categories=134x386x366x107x261"
             self.grab_theme_params(url, self.search_results)
         GLib.idle_add(self.scroll_to_original_pos, category_box.get_parent().get_parent(), vadj.get_value()) #For vertical position in scrolled window to not reset
-        category_box.remove(button)
         
     def scroll_to_original_pos(self, scrolled_window, vadj):
         scrolled_window.get_vadjustment().set_value(vadj)
