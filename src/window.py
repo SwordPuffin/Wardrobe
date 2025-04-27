@@ -17,9 +17,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile, tarfile, threading, asyncio
+import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile, tarfile, re
 
-gi.require_version('WebKit', '6.0')
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Soup", "3.0")
@@ -28,13 +27,13 @@ gi.require_version("Soup", "3.0")
 # gi.require_version("XdpGtk4", "1.0")
 # from gi.repository import Xdp, XdpGtk4
 
-from gi.repository import Gtk, GLib, Gio, Gdk, Adw, WebKit, Soup, Pango
+from gi.repository import Gtk, GLib, Gio, Gdk, Adw, Soup, Pango
 from .utils import _get_valid_shell_themes, _get_valid_icon_themes, _get_valid_gtk_themes, _get_valid_cursor_themes, _get_valid_wallpapers, arrange_folders, wallpaper_paths, css
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
     
-    notebook = Gtk.Template.Child()
+    stack = Gtk.Template.Child()
     spinner = Gtk.Template.Child()
     menus = Gtk.Template.Child()
     if(GLib.getenv("HOST_XDG_DATA_HOME") == None):
@@ -109,13 +108,15 @@ class WardrobeWindow(Adw.ApplicationWindow):
         )
 
         self.set_title("")
-        self.notebook.remove_css_class("frame")
         self.set_default_size(600, 600)
         
+        count = 0
         for category in self.categories:
             category_box = Gtk.Box(margin_top=10, margin_bottom=10, margin_start=15, margin_end=15, orientation=Gtk.Orientation.VERTICAL)
             scrollbox = Gtk.ScrolledWindow(vexpand=True, child=category_box)
-            self.notebook.append_page(scrollbox, Gtk.Label(label=_(category["name"])))
+            self.stack.get_child_by_name(str(count)).get_first_child().get_first_child().get_first_child().set_vexpand(True)
+            self.stack.get_child_by_name(str(count)).get_first_child().get_first_child().get_first_child().set_valign(Gtk.Align.FILL)
+            self.stack.get_child_by_name(str(count)).set_child(scrollbox); count += 1
             category['box'] = category_box
         self.menus.connect('notify::selected-item', self.on_type_changed)
         items = Gtk.StringList()
@@ -125,7 +126,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.current_page = 0
         
         self.add_search_and_tweak_pages()
-        self.notebook.connect("switch-page", self.on_tab_changed)
+        self.stack.connect("notify::visible-child", self.on_tab_changed)
 
     def error_dialog(self):
         dialog = Gtk.Dialog(
@@ -184,8 +185,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
         search_entry = Gtk.SearchEntry(placeholder_text="Search...")
         search_entry.connect("activate", self.on_search)
         self.search_results.append(search_entry)
-
-        self.notebook.append_page(scrollbox, Gtk.Label(label=_("Search")))
+        self.stack.get_child_by_name("5").set_child(scrollbox)
+        self.stack.get_child_by_name("5").get_first_child().get_first_child().get_first_child().set_vexpand(True)
+        self.stack.get_child_by_name("5").get_first_child().get_first_child().get_first_child().set_valign(Gtk.Align.FILL)
 
         # if(self.user_theme_downloaded):
         #     self.theme_list = Gtk.ListBox(vexpand=True)
@@ -373,8 +375,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         button.set_visible(False)
         self.current_page += 1
         vadj = category_box.get_parent().get_parent().get_vadjustment()
-        if(self.notebook.get_current_page() != 5):
-            self.fetch_themes(self.notebook.get_current_page(), self.current_page, "_")
+        if(int(self.stack.get_visible_child_name()) != 5):
+            self.fetch_themes(int(self.stack.get_visible_child_name()), self.current_page, "_")
         else:
             url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&categories=134x386x366x107x261"
             self.grab_theme_params(url, self.search_results)
@@ -428,9 +430,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         browser_button.connect("clicked", self.on_view_button_clicked, theme_url)
         button_box.append(rating_box); button_box.append(download_button); button_box.append(browser_button)
 
-        description_label = WebKit.WebView(hexpand=True)
-        description_label.load_html(description)
-        description_label.add_css_class("description")
+        description_label = Gtk.Label(label=re.sub(r'<.*?>', '', description), selectable=True, wrap=True)
         if(len(image_links) > 1):
             prev_button = Gtk.Button(label="<", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, hexpand=True, margin_end=12, margin_start=12); navigation_box.prepend(prev_button)
             prev_button.add_css_class("circular")
@@ -438,9 +438,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
             next_button.add_css_class("circular")
             prev_button.connect("clicked", self.on_prev_clicked, carousel)
             next_button.connect("clicked", self.on_next_clicked, carousel)
-        rounded_frame = Gtk.Frame(child=description_label, height_request=150, margin_bottom=12, margin_start=12, margin_end=12)
-        theme_box.append(rounded_frame)
+        description_scrolled_window = Gtk.ScrolledWindow(child=description_label, margin_top=8, margin_bottom=5, margin_start=12, margin_end=12, height_request=150)
         theme_box.append(button_box)
+        theme_box.append(description_scrolled_window)
         theme_box.prepend(carousel_box)
         cell = Gtk.Frame(child=theme_box); cell.add_css_class("card")
         theme_grid.insert(cell, -1)
@@ -605,14 +605,16 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 self.selected = "high"
             case("New"):
                 self.selected = "new"
-        self.fetch_themes(self.notebook.get_current_page(), 0, "clear")
+        self.fetch_themes(int(self.stack.get_visible_child_name()), 0, "clear")
 
-    def on_tab_changed(self, notebook, page, page_num):
-        if(page_num != 5 and page_num != 6):
+
+    def on_tab_changed(self, stack, param_spec):
+
+        if(int(stack.get_visible_child_name()) != 5 and int(stack.get_visible_child_name()) != 6):
             self.menus.set_sensitive(True)
-            self.fetch_themes(page_num, 0, "clear")
+            self.fetch_themes(int(stack.get_visible_child_name()), 0, "clear")
         else:
-            if(page_num == 6):
+            if(int(stack.get_visible_child_name()) == 6):
                 self.on_selection_changed(self.dropdown, _)
             self.menus.set_sensitive(False)
 
