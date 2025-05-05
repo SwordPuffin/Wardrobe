@@ -17,11 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-#Some of the code in this file is taken from the official Gnome-Tweaks app with some adaptations for wardrobe
-#https://gitlab.gnome.org/GNOME/gnome-tweaks
-
-import os, logging, subprocess, shutil
-from gi.repository import Gtk
+import os, shutil
 
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
@@ -36,7 +32,7 @@ def arrange_folders(download_dir, theme_dir, index, name):
         print(folders[index])
     except Exception:
         return # Does not verify icon themes and wallpapers
-
+    print(download_dir)
     os.mkdir(name + "-wardrobe_install"); new_path = name + "-wardrobe_install"
     for folder_name in folders[index]:
         for root, dirs, files in os.walk(download_dir, topdown=False):
@@ -56,56 +52,6 @@ def arrange_folders(download_dir, theme_dir, index, name):
                         continue
     shutil.rmtree(name)
     os.rename(new_path, new_path.replace("-wardrobe_install", ""))
-
-wallpaper_paths = dict()
-def _get_valid_shell_themes():
-    valid = []
-    for dirs in [f"{os.path.expanduser('~')}/.themes/", f"/run/host/usr/share/themes"]:
-        valid += walk_directories(dirs, lambda d: "/gnome-shell " in d)
-    return set(valid)
-
-def _get_valid_gtk_themes():
-    """ Only shows themes that have variations for gtk3"""
-    valid = ['Adwaita', 'HighContrast', 'HighContrastInverse']
-    for dirs in [f"{os.path.expanduser('~')}/.themes/", f"/run/host/usr/share/themes"]:
-        valid += walk_directories(dirs, lambda d: "gtk-3." in d)
-    return set(valid)
-    
-def _get_valid_icon_themes():
-    valid = []
-    for dirs in [f"{os.path.expanduser('~')}/.icons/", f"/run/host/usr/share/icons"]:
-        valid += walk_directories(dirs, lambda d: "index.theme " in d)
-    return set(valid)
-
-def _get_valid_cursor_themes():
-    valid = []
-    for dirs in [f"{os.path.expanduser('~')}/.icons/", f"/run/host/usr/share/icons"]:
-        valid += walk_directories((dirs), lambda d: "cursors " in d)
-    return set(valid)
-
-def _get_valid_wallpapers():
-    valid = []
-    for dirname, _, filenames in os.walk(f"{os.path.expanduser('~')}/Pictures/"):
-        for file in filenames:
-            if any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"]):
-                valid.append(file)
-                wallpaper_paths[file] = dirname
-    return valid
-    
-def walk_directories(dirs, filter_func):
-    valid = []
-    try:
-        if os.path.exists(dirs):
-            for thdir in os.listdir(dirs):
-                full_thdir = os.path.join(dirs, thdir)
-                if os.path.isdir(full_thdir):
-                    for t in os.listdir(full_thdir):
-                        full_t = os.path.join(full_thdir, t + " ")
-                        if filter_func(full_t):
-                            valid.append(thdir)
-    except:
-        logging.critical("Error parsing directories", exc_info=True)
-    return valid
 
 css = """
     .rounded {

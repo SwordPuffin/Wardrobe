@@ -26,30 +26,24 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Gio, Adw
 from .window import WardrobeWindow
 
-
 class WardrobeApplication(Adw.Application):
     """The main application singleton class."""
-
+    carousel_image_count = 3
+    cell_count = 8
     def __init__(self):
         super().__init__(application_id='io.github.swordpuffin.wardrobe',
                          flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
         self.create_action('quit', lambda *_: self.quit(), ['<primary>q'])
         self.create_action('about', self.on_about_action)
-        # self.create_action('preferences', self.on_preferences_action)
+        self.create_action('preferences', self.on_preferences_action)
 
     def do_activate(self):
-        """Called when the application is activated.
-
-        We raise the application's main window, creating it if
-        necessary.
-        """
         win = self.props.active_window
         if not win:
             win = WardrobeWindow(application=self)
         win.present()
 
     def on_about_action(self, *args):
-        """Callback for the app.about action."""
         about = Adw.AboutDialog(application_name='Wardrobe',
                                 application_icon='io.github.swordpuffin.wardrobe',
                                 developer_name='Nathan Perlman',
@@ -60,19 +54,50 @@ class WardrobeApplication(Adw.Application):
         about.set_translator_credits(_('translator-credits'))
         about.present(self.props.active_window)
 
-    # def on_preferences_action(self, widget, _):
-    #     """Callback for the app.preferences action."""
-    #     print('app.preferences action activated')
+    def on_preferences_action(self, widget, _):
+        dialog = Gtk.MessageDialog(modal=True, transient_for=self.props.active_window, buttons=Gtk.ButtonsType.CLOSE)
+        dialog.set_default_size(500, 200)
+
+        carousel_adjustment = Gtk.Adjustment(value=WardrobeWindow.carousel_image_count, lower=0, upper=5, step_increment=1)
+        carousel_spinner = Gtk.SpinButton(adjustment=carousel_adjustment)
+        cell_adjustment = Gtk.Adjustment(value=WardrobeWindow.cell_count, lower=2, upper=10, step_increment=1)
+        cell_spinner = Gtk.SpinButton(adjustment=cell_adjustment)
+
+        content = dialog.get_content_area()
+        content.set_spacing(12)
+        content.set_margin_top(30)
+        content.set_margin_bottom(10)
+        content.set_margin_start(25)
+        content.set_margin_end(25)
+        frame = Gtk.Frame(child=Gtk.Label(label="Less items will load faster, and take up less system resources.\nBut you may have less context about downloaded content."))
+        frame.add_css_class("card")
+        content.prepend(frame)
+
+        carousel_label = Gtk.Label(label="Number of carousel images to show for each theme:", margin_top=15)
+        content.append(carousel_label)
+        content.append(carousel_spinner)
+
+        cell_label = Gtk.Label(label="Number of themes to present on one page:", margin_top=30)
+        content.append(cell_label)
+        content.append(cell_spinner)
+
+        title = Gtk.Label(label="Preferences", margin_bottom=30)
+        title.add_css_class("title-3")
+        content.prepend(title)
+
+        dialog.connect(
+            "response",
+            lambda d, r: self.preferences_save(d, cell_spinner.get_value_as_int(), carousel_spinner.get_value_as_int())
+        )
+        dialog.show()
+
+    def preferences_save(self, dlg, cell, carousel):
+        WardrobeWindow.carousel_image_count = carousel
+        WardrobeWindow.cell_count = cell
+        print(WardrobeWindow.cell_count)
+        dlg.destroy()
 
     def create_action(self, name, callback, shortcuts=None):
-        """Add an application action.
-
-        Args:
-            name: the name of the action
-            callback: the function to be called when the action is
-              activated
-            shortcuts: an optional list of accelerators
-        """
         action = Gio.SimpleAction.new(name, None)
         action.connect("activate", callback)
         self.add_action(action)

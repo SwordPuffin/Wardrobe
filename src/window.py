@@ -22,13 +22,9 @@ import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Soup", "3.0")
-#Remember to add libportal when trying to use xdp
-# gi.require_version("Xdp", "1.0")
-# gi.require_version("XdpGtk4", "1.0")
-# from gi.repository import Xdp, XdpGtk4
 
 from gi.repository import Gtk, GLib, Gio, Gdk, Adw, Soup, Pango
-from .utils import _get_valid_shell_themes, _get_valid_icon_themes, _get_valid_gtk_themes, _get_valid_cursor_themes, _get_valid_wallpapers, arrange_folders, wallpaper_paths, css
+from .utils import arrange_folders, css
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
@@ -55,8 +51,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
     search_theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
     error_label = Gtk.Label(label=_("No results found :("))
     error_label.add_css_class("error"); error_label.add_css_class("title-4")
-    # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
-    # interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
     
     #This system with the txt file is really rigid, and I will probably replace it at some point.
     #Saves a python dictionary inside a plain text file with the file paths for downloaded themes. Made for easy installation and deletion.
@@ -66,30 +60,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
     except Exception:
         downloaded = dict()
     current_page = 0
-    # try:
-    #     active_gtk_theme = interface_settings.get("gtk-theme")
-    #     active_icon_theme = interface_settings.get("icon-theme")
-    #     active_cursor_theme = interface_settings.get("cursor-theme")
-    #     active_wallpaper = interface_settings.get("picture-uri")
-        # active_shell_theme = interface_settings.get("name")
-    #     active_shell_theme = ""
-    # except Exception:
-    #     active_shell_theme = ""
-    #     active_icon_theme = ""
-    #     active_wallpaper = ""
-    #     active_cursor_theme = ""
-    #     active_gtk_theme = ""
-
-
-        # user_theme_downloaded = False
-    # active_themes = {
-    #     0: active_shell_theme,
-    #     1: active_icon_theme,
-    #     2: active_gtk_theme,
-    #     3: active_cursor_theme,
-    #     4: active_wallpaper
-    # }
-
+    carousel_image_count = 3
+    cell_count = 8
     categories = [
         {"name": "Shell Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode="},
         {"name": "Icon Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=386&sortmode="},
@@ -106,9 +78,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
         )
-
         self.set_title("")
-        self.set_default_size(600, 600)
+        self.set_default_size(1350, 800)
         
         count = 0
         for category in self.categories:
@@ -184,104 +155,11 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         search_entry = Gtk.SearchEntry(placeholder_text="Search...")
         search_entry.connect("activate", self.on_search)
-        self.search_results.append(search_entry)
         self.stack.get_child_by_name("5").set_child(scrollbox)
+        self.stack.get_child_by_name("5").get_first_child().get_first_child().get_first_child().prepend(search_entry)
         self.stack.get_child_by_name("5").get_first_child().get_first_child().get_first_child().set_vexpand(True)
         self.stack.get_child_by_name("5").get_first_child().get_first_child().get_first_child().set_valign(Gtk.Align.FILL)
 
-        # if(self.user_theme_downloaded):
-        #     self.theme_list = Gtk.ListBox(vexpand=True)
-        #     self.theme_list.add_css_class("boxed-list"); self.theme_list.add_css_class("title-4")
-        #     item_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
-        #     scrollbox = Gtk.ScrolledWindow(child=self.theme_list)
-
-        #     items = ["Shell Themes", "Icon Themes", "Gtk3/4 Themes", "Cursors", "Wallpaper"]
-        #     string_list = Gtk.StringList()
-        #     for item in items:
-        #         string_list.append(item)
-        #     self.dropdown = Gtk.DropDown.new_from_strings(items); self.dropdown.set_halign(Gtk.Align.START)
-        #     self.dropdown.connect("notify::selected", self.on_selection_changed)
-        #     self.on_selection_changed(self.dropdown, _)
-
-        #     item_box.append(self.dropdown)
-        #     item_box.append(scrollbox)
-        #     self.notebook.append_page(item_box, Gtk.Label(label="_(Tweaks")))
-        # else:
-            # self.error_dialog()
-  
-    # first_check_button = None
-    # def on_selection_changed(self, dropdown, param):
-    #     while(self.theme_list.get_first_child() is not None):
-    #         self.theme_list.remove(self.theme_list.get_first_child())
-        
-    #     match(self.dropdown.get_selected()):
-    #         case(0):
-    #             items = _get_valid_shell_themes()
-    #         case(1):
-    #             items = _get_valid_icon_themes()
-    #         case(2):
-    #             items = _get_valid_gtk_themes()
-    #         case(3):
-    #             items = _get_valid_cursor_themes()
-    #         case(4):
-    #             items = _get_valid_wallpapers()
-
-    #     for file_name in sorted(items):
-    #         row = Gtk.ListBoxRow(vexpand=True, height_request=50)
-    #         row_box = Gtk.Box()
-    #         check_button = Gtk.CheckButton(label=_(file_name), hexpand=True, margin_start=10, halign=Gtk.Align.START)
-    #         check_button.get_last_child().set_wrap(True)
-    #         check_button.get_last_child().set_wrap_mode(Pango.WrapMode.CHAR)
-    #         check_button.get_last_child().set_size_request(300, -1)
-    #         check_button.get_last_child().set_margin_start(16)
-    #         row_box.append(check_button)
-    #         if(self.dropdown.get_selected() == 4):
-    #             image_file = Gio.File.new_for_path((f"{shutil.os.path.join(wallpaper_paths[file_name], file_name)}"))
-    #             image = Gtk.Picture(hexpand=True, halign=Gtk.Align.END, height_request=70, margin_top=10, margin_bottom=10, margin_end=5, file=image_file)
-    #             row_box.append(image)
-    #         if(self.active_themes[self.dropdown.get_selected()] == f"'{file_name}'"):
-    #             check_button.set_active(True)
-    #         if(self.first_check_button is None):
-    #             self.first_check_button = check_button
-    #         else:
-    #             check_button.set_group(self.first_check_button)
-    #         check_button.connect("toggled", self.change_theme, self.dropdown.get_selected(), shutil.os.path.join(wallpaper_paths[file_name], file_name) if file_name in wallpaper_paths.keys() else None)
-    #         row.set_child(row_box)
-    #         self.theme_list.append(row)
-
-    # def change_theme(self, button, index, wallpaper_path):
-        # TODO: This is an unsafe way to set the theme, will NEED revision
-    #     if(button.get_active()):
-    #         match(index):
-    #             case(0): #Shell themes
-                    #shell_settings.set_string("name", button.get_parent().get_first_child().get_label())
-    #                 pass
-    #             case(1): #Icon themes
-    #                 self.interface_settings.set_string("icon-theme", button.get_parent().get_first_child().get_label())
-    #             case(2): #Gtk3/4 themes
-    #                 self.interface_settings.set_string("gtk-theme", button.get_parent().get_first_child().get_label())
-    #             case(3): #Cursors
-    #                 self.interface_settings.set_string("cursor-theme", button.get_parent().get_first_child().get_label())
-    #             case(4): #Wallpapers
-    #                 portal = Xdp.Portal()
-    #                 parent = XdpGtk4.parent_new_gtk(self)
-    #                 print(wallpaper_path)
-    #                 file = f"file://{wallpaper_path}"
-    #                 portal.set_wallpaper(
-    #                     parent,
-    #                     file,
-    #                     Xdp.WallpaperFlags.PREVIEW
-    #                     | Xdp.WallpaperFlags.BACKGROUND
-    #                     | Xdp.WallpaperFlags.LOCKSCREEN,
-    #                     None,
-    #                     self.on_wallpaper_set
-    #                 )
-    # def on_wallpaper_set(self, _portal, result):
-    #     success = _portal.set_wallpaper_finish(result)
-    #     if success:
-    #         print("Wallpaper set successfully")
-    #     else:
-    #         print("Could not set wallpaper")
     def on_search(self, search_entry):
         self.query = search_entry.get_text().strip()
         if(self.query):
@@ -294,14 +172,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
             while(self.search_theme_grid.get_first_child() is not None):
                 self.search_theme_grid.remove(self.search_theme_grid.get_first_child())
                 
-            url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&categories=134x386x366x107x261"
+            url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&pagesize={self.cell_count}&categories=134x386x366x107x261"
             self.loading(True)
             self.search_results.append(self.search_theme_grid)
             self.grab_theme_params(url, self.search_results)
 
     def fetch_themes(self, index, page, action):
         category = self.categories[self.category_index(index)]
-        api_url = f"{category['url']}{self.selected}&page={page}"
+        api_url = f"{category['url']}{self.selected}&pagesize={self.cell_count}&page={page}"
         category_box = category['box']
         if(action == "clear"):
             self.current_page = 0
@@ -332,7 +210,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
             return
         for item in root.findall(".//content"):
             title = item.find("name").text if item.find("name") is not None else "Unknown"
-            thumbnail_url = item.find("previewpic1").text if item.find("previewpic1") is not None else ""
             theme_url = item.find("detailpage").text if item.find("detailpage") is not None else ""
             creator = item.find("personid").text if item.find("personid") is not None else "Unknown"
             #I don't know why but I can't get downloads to always work unless I overbuild the security
@@ -342,7 +219,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 downloads = "0"
             description = item.find("description").text if item.find("description") is not None else ""
             rating = int(item.find("score").text) / 10 if item.find("score") is not None else 0
-            typeid = item.find("typeid").text if item.find("typeid") is not None else 0 #Some items don't have typeids for some reason???
+            typeid = item.find("typeid").text if item.find("typeid") is not None else 0 #Some items don't have typeids for some reason
             download_links = []
             download_names = []
             for i in range(1, 25):  # Maximum of 24 download links
@@ -354,18 +231,20 @@ class WardrobeWindow(Adw.ApplicationWindow):
                     download_links.append(download_link.text)
                     download_names.append(download_name.text)
             image_links = []
-            for z in range(1, 6):
+            for z in range(1, self.carousel_image_count + 1):
                 if(item.find(f"previewpic{z}") is not None):
                     image_links.append(item.find(f"previewpic{z}").text)
                 else:
                     break
             self.add_theme_to_list(theme_grid, title, creator, downloads, theme_url, download_links, download_names, description, self.category_index(typeid), rating, image_links)
-        if(int(root.findall(".//meta")[0].find("itemsperpage").text) < 10):
+        if(int(root.findall(".//meta")[0].find("itemsperpage").text) < self.cell_count):
             self.loading(False)
             return
-        self.next_page_button = Gtk.Button(label=_("Next Page"), vexpand=True, margin_top=10, visible=False)
-        category_box.append(self.next_page_button)
-        self.next_page_button.connect("clicked", self.on_next_page_clicked, category_box)
+        print("hi")
+        next_page_button = Gtk.Button(label=_("Next Page"), vexpand=True, margin_top=10)
+        category_box.append(next_page_button)
+        next_page_button.connect("clicked", self.on_next_page_clicked, category_box)
+        print("bye")
 
     def no_results_found(self, box):
         self.loading(False)
@@ -378,7 +257,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         if(int(self.stack.get_visible_child_name()) != 5):
             self.fetch_themes(int(self.stack.get_visible_child_name()), self.current_page, "_")
         else:
-            url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&categories=134x386x366x107x261"
+            url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&pagesize={self.cell_count}&categories=134x386x366x107x261"
             self.grab_theme_params(url, self.search_results)
         GLib.idle_add(self.scroll_to_original_pos, category_box.get_parent().get_parent(), vadj.get_value()) #For vertical position in scrolled window to not reset
         
@@ -386,9 +265,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
         scrolled_window.get_vadjustment().set_value(vadj)
 
     def add_theme_to_list(self, theme_grid, title, creator, downloads, theme_url, download_links, download_names, description, index, rating, image_links):
-        theme_box = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL, visible=False)
+        theme_box = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL)
 
-        label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True, width_request=150)
+        label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True)
         label.add_css_class("title-2")
         creator_label = Gtk.Label(label=_(creator) + "\nDownloads: " + downloads, justify=Gtk.Justification.CENTER, margin_bottom=12)
         creator_label.add_css_class("creator-title")
@@ -398,15 +277,15 @@ class WardrobeWindow(Adw.ApplicationWindow):
         label_box.append(creator_label)
         theme_box.append(label_box)
 
-        carousel = Adw.Carousel(hexpand=True, halign=Gtk.Align.CENTER, margin_top=8, allow_scroll_wheel=False)
+        carousel = Adw.Carousel(halign=Gtk.Align.CENTER, margin_top=8, allow_scroll_wheel=False)
         for image in image_links:
             self.get_image_from_url(image, _, carousel, theme_box)
 
-        navigation_box = Gtk.Box()
+        navigation_box = Gtk.Box(halign=Gtk.Align.CENTER)
         navigation_box.append(carousel)
 
         indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER)
-        carousel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        carousel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
         carousel_box.append(navigation_box); carousel_box.append(indicators)
         carousel.add_css_class("rounded")
 
@@ -465,10 +344,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
             raise Exception(f"Got {message.get_status()}, {message.get_reason_phrase()}")
         image = Gtk.Image.new_from_paintable(Gdk.Texture.new_from_bytes(bytes))
         image.set_pixel_size(260)
-        carousel.prepend(image)
+        carousel.append(image)
         self.loading(False)
-        self.next_page_button.set_visible(True)
-        theme_box.set_visible(True)
 
     def get_image_from_url(self, url, row, carousel, theme_box):
         session = Soup.Session()
@@ -542,7 +419,12 @@ class WardrobeWindow(Adw.ApplicationWindow):
                     tar_ref.extractall(folder_path)
                     for member in tar_ref.getnames():
                         # Get the head folder or file
-                        head_folder = member.split('/')[0]
+                        if(not shutil.os.path.isdir(member) or member == '.' or member == '_'):
+                            continue
+                        if(member.split('/')[0] != "."):
+                            head_folder = member.split('/')[0]
+                        else:
+                            head_folder = member.split('/')[1]
                         head_folders.add(shutil.os.path.join(folder_path, head_folder))
                     for item in head_folders:
                         arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
@@ -607,9 +489,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 self.selected = "new"
         self.fetch_themes(int(self.stack.get_visible_child_name()), 0, "clear")
 
-
     def on_tab_changed(self, stack, param_spec):
-
         if(int(stack.get_visible_child_name()) != 5 and int(stack.get_visible_child_name()) != 6):
             self.menus.set_sensitive(True)
             self.fetch_themes(int(stack.get_visible_child_name()), 0, "clear")
