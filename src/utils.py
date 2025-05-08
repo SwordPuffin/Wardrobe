@@ -70,4 +70,38 @@ css = """
     .card {
         border: 0px solid;
     }
+
+    .tab_button {
+        border-radius: 15px;
+    }
+
+    .red-accent {
+        background-color: var(--accent-red);
+        color: @white;
+    }
+
+    .green-accent {
+        background-color: var(--accent-green);
+        color: @white;
+    }
+
+    .purple-accent {
+        background-color: var(--accent-purple);
+        color: @white;
+    }
+
+    .blue-accent {
+        background-color: var(--accent-blue);
+        color: @white;
+    }
+
+    .pink-accent {
+        background-color: var(--accent-pink);
+        color: @white;
+    }
+
+    .orange-accent {
+        background-color: var(--accent-orange);
+        color: @white;
+    }
 """

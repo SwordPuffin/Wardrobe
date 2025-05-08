@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="WardrobeWindow" parent="AdwApplicationWindow">
-    <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <property name="top-bar-style">1</property>
+        <child type="top">
           <object class="AdwHeaderBar">
-            <property name="title-widget">
-              <object class="AdwViewSwitcher" id="switcher_title">
-                <property name="stack">stack</property>
-                <property name="policy">1</property>
-              </object>
-            </property>
             <child>
               <object class="GtkDropDown" id="menus"/>
             </child>
@@ -34,90 +28,111 @@
             </child>
           </object>
         </child>
-        <!-- <child> -->
-        <!--   <object class="GtkNotebook" id="notebook"> -->
-        <!--   </object> -->
-        <!-- </child> -->
-        <child>
-          <object class="AdwViewStack" id="stack">
-            <property name="vexpand">true</property>
-            <child>
-              <object class="AdwViewStackPage" id="page0">
-                <property name="name">0</property>
-                <property name="title" translatable="yes">Shell</property>
-                <property name="icon-name">shell-symbolic</property>
-                <property name="use-underline">true</property>
+        <property name="content">
+          <object class="AdwOverlaySplitView" id="page">
+            <property name="sidebar">
+              <object class="AdwStatusPage">
                 <property name="child">
-                  <object class="AdwStatusPage">
+                  <object class="GtkBox" id="tab_buttons">
+                    <property name="orientation">1</property>
+                    <property name="spacing">18</property>
+                    <child>
+                      <object class="GtkToggleButton" id="tab_button1">
+                        <child>
+                          <object class="AdwButtonContent">
+                            <property name="label" translatable="yes">Shell</property>
+                            <property name="icon-name">shell-symbolic</property>
+                          </object>
+                        </child>
+                        <property name="vexpand">true</property>
+                        <property name="name">0</property>
+                        <property name="active">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="tab_button2">
+                        <child>
+                          <object class="AdwButtonContent">
+                            <property name="label" translatable="yes">Icon</property>
+                            <property name="icon-name">app-symbolic</property>
+                          </object>
+                        </child>
+                        <property name="vexpand">true</property>
+                        <property name="name">1</property>
+                        <property name="group">tab_button1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="tab_button3">
+                        <child>
+                          <object class="AdwButtonContent">
+                            <property name="label" translatable="yes">Interface</property>
+                            <property name="icon-name">interface-symbolic</property>
+                          </object>
+                        </child>
+                        <property name="vexpand">true</property>
+                        <property name="name">2</property>
+                        <property name="group">tab_button1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="tab_button4">
+                        <child>
+                          <object class="AdwButtonContent">
+                            <property name="label" translatable="yes">Cursor</property>
+                            <property name="icon-name">cursor-symbolic</property>
+                          </object>
+                        </child>
+                        <property name="vexpand">true</property>
+                        <property name="name">3</property>
+                        <property name="group">tab_button1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="tab_button5">
+                        <child>
+                          <object class="AdwButtonContent">
+                            <property name="label" translatable="yes">Wallpaper</property>
+                            <property name="icon-name">wallpaper-symbolic</property>
+                          </object>
+                        </child>
+                        <property name="vexpand">true</property>
+                        <property name="name">4</property>
+                        <property name="group">tab_button1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="tab_button6">
+                        <child>
+                          <object class="AdwButtonContent">
+                            <property name="label" translatable="yes">Search</property>
+                            <property name="icon-name">search-symbolic</property>
+                          </object>
+                        </child>
+                        <property name="vexpand">true</property>
+                        <property name="name">5</property>
+                        <property name="group">tab_button1</property>
+                      </object>
+                    </child>
                   </object>
                 </property>
               </object>
-            </child>
-            <child>
-              <object class="AdwViewStackPage" id="page1">
-                <property name="name">1</property>
-                <property name="title" translatable="yes">Icon</property>
-                <property name="icon-name">app-symbolic</property>
-                <property name="use-underline">true</property>
-                <property name="child">
-                  <object class="AdwStatusPage">
+            </property>
+            <property name="content">
+              <object class="AdwStatusPage">
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">1</property>
+                    <property name="valign">3</property>
+                    <property name="spacing">18</property>
                   </object>
-                </property>
+                </child>
               </object>
-            </child>
-            <child>
-              <object class="AdwViewStackPage" id="page2">
-                <property name="name">2</property>
-                <property name="title" translatable="yes">Interface</property>
-                <property name="icon-name">interface-symbolic</property>
-                <property name="badge-number">0</property>
-                <property name="use-underline">true</property>
-                <property name="child">
-                  <object class="AdwStatusPage">
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwViewStackPage" id="page3">
-                <property name="name">3</property>
-                <property name="title" translatable="yes">Cursor</property>
-                <property name="icon-name">cursor-symbolic</property>
-                <property name="use-underline">true</property>
-                <property name="child">
-                  <object class="AdwStatusPage">
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwViewStackPage" id="page4">
-              <property name="name">4</property>
-                <property name="title" translatable="yes">Wallpaper</property>
-                <property name="icon-name">wallpaper-symbolic</property>
-                <property name="use-underline">true</property>
-                <property name="child">
-                  <object class="AdwStatusPage">
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwViewStackPage" id="page5">
-                <property name="name">5</property>
-                <property name="title" translatable="yes">Search</property>
-                <property name="icon-name">search-symbolic</property>
-                <property name="use-underline">true</property>
-                <property name="child">
-                  <object class="AdwStatusPage">
-                  </object>
-                </property>
-              </object>
-            </child>
+            </property>
           </object>
-        </child>
+        </property>
       </object>
-    </child>
+    </property>
   </template>
   <menu id="primary_menu">
     <section>
