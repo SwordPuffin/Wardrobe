@@ -29,6 +29,7 @@ from .utils import arrange_folders, css
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
     
+    __gtype_name__ = 'WardrobeWindow'
     page = Gtk.Template.Child()
     tab_buttons = Gtk.Template.Child()
     menus = Gtk.Template.Child()
@@ -45,12 +46,10 @@ class WardrobeWindow(Adw.ApplicationWindow):
         4: f"{picture_dir}/",
         5: f"{GLib.get_user_data_dir()}"
     }
-    __gtype_name__ = 'WardrobeWindow'
     selected = "down"
-    dropdown = None
-    user_theme_downloaded = True
-    search_theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
-    category_box = Gtk.Box(margin_top=10, margin_bottom=10, margin_start=15, margin_end=15, orientation=Gtk.Orientation.VERTICAL)
+    activated = None
+    category_box = None
+    search_url = None
     error_label = Gtk.Label(label=_("No results found :("))
     error_label.add_css_class("error"); error_label.add_css_class("title-4")
     
@@ -83,13 +82,23 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         self.set_default_size(800, 600)
         self.set_title("")
-        self.tab_buttons.get_parent().set_vexpand(True)
-        self.tab_buttons.get_parent().set_valign(Gtk.Align.FILL)
-        for child, css_theme in zip(self.tab_buttons, ["red-accent", "green-accent", "purple-accent", "blue-accent", "pink-accent", "orange-accent"]):
-            child.connect("toggled", self.on_tab_changed)
-            child.add_css_class("tab_button")
-            child.add_css_class(css_theme)
-        
+        icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic"]
+        for i, label in zip(range(6), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search"]):
+            row = Adw.ActionRow(title=label, activatable=True)
+            icon = Gtk.Image.new_from_icon_name(icons[i])
+            if(i == 0):
+                self.activated = row
+                row.add_css_class("accent")
+            elif(i == 5):
+                search = Adw.EntryRow(title="Search", show_apply_button=False, name=str(i))
+                self.tab_buttons.append(search)
+                search.connect("entry-activated", self.on_search)
+                continue
+            row.add_suffix(icon)
+            row.set_name(str(i))
+            row.connect("activated", self.on_tab_changed)
+            self.tab_buttons.append(row)
+
         self.menus.connect('notify::selected-item', self.on_type_changed)
         items = Gtk.StringList()
         for item in ["Most Downloaded", "Alphabetical", "Highest Rated", "New"]:
@@ -124,64 +133,52 @@ class WardrobeWindow(Adw.ApplicationWindow):
             response_text = response_bytes.get_data()
         return response_text 
 
-    def add_search_page(self):
-        self.search_results = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
-        scrollbox = Gtk.ScrolledWindow(child=self.search_results)
-
-        search_entry = Gtk.SearchEntry(placeholder_text="Search...")
-        search_entry.connect("activate", self.on_search)
-        self.search_results.append(search_entry)
-
-        self.page.set_content(scrollbox)
-
     def on_search(self, search_entry):
         self.query = search_entry.get_text().strip()
         if(self.query):
             self.menus.set_sensitive(False)
             print(f"Search for: {self.query}")
-            self.search_results.set_vexpand(True)
             self.current_page = 0
-            if(self.search_theme_grid.get_parent()):
-                self.search_theme_grid.get_parent().remove(self.search_theme_grid)
-            while(self.search_theme_grid.get_first_child() is not None):
-                self.search_theme_grid.remove(self.search_theme_grid.get_first_child())
-                
-            url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&pagesize={self.cell_count}&categories=134x386x366x107x261"
+            self.search_url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&pagesize={self.cell_count}&categories=134x386x366x107x261"
             self.loading(True)
-            self.search_results.append(self.search_theme_grid)
-            self.grab_theme_params(url, self.search_results)
+            self.on_tab_changed(search_entry)
 
     def fetch_themes(self, index, page, action):
-        category = self.categories[self.category_index(index)]
-        api_url = f"{category['url']}{self.selected}&pagesize={self.cell_count}&page={page}"
+        if(index != 5):
+            category = self.categories[self.category_index(index)]
+            api_url = f"{category['url']}{self.selected}&pagesize={self.cell_count}&page={page}"
+        else:
+            api_url = self.search_url
         if(action == "clear"):
+            self.category_box = Gtk.Box(margin_top=10, margin_bottom=10, margin_start=15, margin_end=15, orientation=Gtk.Orientation.VERTICAL)
             self.current_page = 0
             while(self.category_box.get_first_child() is not None):
                 self.category_box.remove(self.category_box.get_first_child())
-        self.grab_theme_params(api_url, self.category_box)
+        self.grab_theme_params(api_url)
 
-    def grab_theme_params(self, api_url, category_box):
+    def grab_theme_params(self, api_url):
         self.loading(True)
         print("start loading xml")
         response = self.soup_get(api_url)
         print("finished loading xml")
 
         flowbox_in_theme_grid = False
-        for child in category_box:
+        for child in self.category_box:
             if(str(type(child)) == "<class 'gi.repository.Gtk.FlowBox'>"):
                 theme_grid = child
                 flowbox_in_theme_grid = True
             elif(str(type(child)) == "<class 'gi.repository.Gtk.Button'>" or str(type(child)) == "<class 'gi.repository.Gtk.Label'>"):
-                category_box.remove(child)
+                self.category_box.remove(child)
         if(not flowbox_in_theme_grid):
+            print("flowbox not in grid")
             theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
-            category_box.append(theme_grid)
-            scrollbox = Gtk.ScrolledWindow(vexpand=True, child=category_box)
+            self.category_box.append(theme_grid)
+            scrollbox = Gtk.ScrolledWindow(vexpand=True, child=self.category_box)
             self.page.set_content(scrollbox)
 
         root = ET.fromstring(response)
         if(int(root.findall(".//meta")[0].find("itemsperpage").text) == 0):
-            self.no_results_found(category_box)
+            self.no_results_found(self.category_box)
             return
         for item in root.findall(".//content"):
             title = item.find("name").text if item.find("name") is not None else "Unknown"
@@ -216,28 +213,23 @@ class WardrobeWindow(Adw.ApplicationWindow):
             self.loading(False)
             return
         next_page_button = Gtk.Button(label=_("Next Page"), vexpand=True, margin_top=10)
-        category_box.append(next_page_button)
-        next_page_button.connect("clicked", self.on_next_page_clicked, category_box)
+        self.category_box.append(next_page_button)
+        next_page_button.connect("clicked", self.on_next_page_clicked)
 
     def no_results_found(self, box):
         self.loading(False)
         box.append(self.error_label)
         
-    def on_next_page_clicked(self, button, category_box):
+    def on_next_page_clicked(self, button):
         button.set_visible(False)
         self.current_page += 1
-        vadj = category_box.get_parent().get_parent().get_vadjustment()
-        if(self.get_current_tab() != 5):
-            self.fetch_themes(self.get_current_tab(), self.current_page, "_")
+        vadj = self.category_box.get_parent().get_parent().get_vadjustment()
+        if(int(self.activated.get_name()) != 5):
+            self.fetch_themes(int(self.activated.get_name()), self.current_page, "_")
         else:
             url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&pagesize={self.cell_count}&categories=134x386x366x107x261"
-            self.grab_theme_params(url, self.search_results)
-        GLib.idle_add(self.scroll_to_original_pos, category_box.get_parent().get_parent(), vadj.get_value()) #For vertical position in scrolled window to not reset
-        
-    def get_current_tab(self):
-        for child in self.tab_buttons:
-            if(child.get_active()):
-                return int(child.get_name())
+            self.grab_theme_params(url)
+        GLib.idle_add(self.scroll_to_original_pos, self.category_box.get_parent().get_parent(), vadj.get_value()) #For vertical position in scrolled window to not reset
 
     def scroll_to_original_pos(self, scrolled_window, vadj):
         scrolled_window.get_vadjustment().set_value(vadj)
@@ -259,7 +251,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         for image in image_links:
             self.get_image_from_url(image, _, carousel, theme_box)
 
-        navigation_box = Gtk.Box(halign=Gtk.Align.CENTER)
+        navigation_box = Gtk.Box(halign=Gtk.Align.CENTER, visible=False)
         navigation_box.append(carousel)
 
         indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER)
@@ -323,6 +315,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         image = Gtk.Image.new_from_paintable(Gdk.Texture.new_from_bytes(bytes))
         image.set_pixel_size(260)
         carousel.append(image)
+        carousel.get_parent().set_visible(True)
         self.loading(False)
 
     def get_image_from_url(self, url, row, carousel, theme_box):
@@ -464,15 +457,18 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 self.selected = "high"
             case("New"):
                 self.selected = "new"
-        self.fetch_themes(self.get_current_tab(), 0, "clear")
+        self.fetch_themes(int(self.activated.get_name()), 0, "clear")
 
-    def on_tab_changed(self, checkbutton):
-        if(int(checkbutton.get_name()) != 5):
+    def on_tab_changed(self, row):
+        self.activated.remove_css_class("accent")
+        row.add_css_class("accent")
+        self.activated = row
+        print(row.get_name())
+        if(int(row.get_name()) != 5):
             self.menus.set_sensitive(True)
-            self.fetch_themes(int(checkbutton.get_name()), 0, "clear")
         else:
-            self.add_search_page()
             self.menus.set_sensitive(False)
+        self.fetch_themes(int(row.get_name()), 0, "clear")
 
     def on_view_button_clicked(self, button, theme_url):
         webbrowser.open(theme_url)
