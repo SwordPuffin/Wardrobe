@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os, shutil, libarchive
+import os, shutil
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
 folders = {
@@ -54,8 +54,11 @@ def arrange_folders(download_dir, theme_dir, index, name):
 
 def extract_folders(archive_path, extract_to):
     before = set(os.listdir(extract_to)) if os.path.exists(extract_to) else set()
-    os.chdir(extract_to)
-    libarchive.extract_file(archive_path)
+
+    # os.chdir(extract_to)
+    # libarchive.extract_file(archive_path)
+
+    shutil.unpack_archive(archive_path, extract_to)
 
     # Get the directory contents after extraction
     after = set(os.listdir(extract_to))
@@ -87,3 +90,4 @@ css = """
         border: 0px solid;
     }
 """
+

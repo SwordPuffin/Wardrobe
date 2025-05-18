@@ -32,16 +32,9 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/SwordPuffin/Wardrobe.git",
-                    "tag" : "v1.0.5"
+                    "tag" : "v1.0.6"
                 }
             ]
-        },
-        {
-	    "name": "libarchive",
-	    "buildsystem": "meson",
-	    "build-commands": [
-		"pip install --prefix=/app git+https://github.com/Changaco/python-libarchive-c.git"
-	    ]
-	}
+        }
     ]
 }
