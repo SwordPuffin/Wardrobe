@@ -66,7 +66,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     except Exception:
         with open(f"{folders[5]}/prefs.json", "w") as file:
             json.dump({"cell_count": 8, "carousel_image_count": 3}, file, indent=4)
-            data = json.load(files)
+            data = json.load(file)
 
     cell_count = data["cell_count"]
     carousel_image_count = data["carousel_image_count"]

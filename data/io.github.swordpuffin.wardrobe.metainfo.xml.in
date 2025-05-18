@@ -43,6 +43,15 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.0.5" date="2025-05-18">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.5</url>
+      <description translate="no">
+        <p>Wardrobe v1.0.5</p>
+        <ul>
+          <li>Fixed launch error with libarchive</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.4" date="2025-05-17">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.4</url>
       <description translate="no">

@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os, shutil, libarchive.public
+import os, shutil, libarchive
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
 folders = {
