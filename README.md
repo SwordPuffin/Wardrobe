@@ -4,6 +4,10 @@ A utility for installing community made Gnome Shell, Gtk3/4, icon, and cursor th
 
 **Wardrobe has not been tested for any desktop environments other than Gnome, so do not expect it to fully work in Cinnamon, Xfce, etc.**
 
+<a href='https://flathub.org/apps/io.github.swordpuffin.wardrobe'>
+    <img width='240' alt='Get it on Flathub' src='https://flathub.org/api/badge?svg&locale=en'/>
+</a>
+
 ## Screenshots
 
 ![Screenshot](https://github.com/SwordPuffin/Wardrobe/blob/main/data/screenshots/Screenshot1.png)

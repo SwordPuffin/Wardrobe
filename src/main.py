@@ -17,19 +17,16 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import sys
-import gi
+import sys, gi, json
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Gio, Adw
+from gi.repository import Gtk, Gio, Adw, GLib
 from .window import WardrobeWindow
 
 class WardrobeApplication(Adw.Application):
     """The main application singleton class."""
-    carousel_image_count = 3
-    cell_count = 8
     def __init__(self):
         super().__init__(application_id='io.github.swordpuffin.wardrobe',
                          flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
@@ -92,9 +89,10 @@ class WardrobeApplication(Adw.Application):
         dialog.show()
 
     def preferences_save(self, dlg, cell, carousel):
-        WardrobeWindow.carousel_image_count = carousel
-        WardrobeWindow.cell_count = cell
-        print(WardrobeWindow.cell_count)
+        with open(f"{GLib.get_user_data_dir()}/prefs.json", "w") as file:
+            json.dump({"cell_count": cell, "carousel_image_count": carousel}, file, indent=4)
+            WardrobeWindow.cell_count = cell
+            WardrobeWindow.carousel_image_count = carousel
         dlg.destroy()
 
     def create_action(self, name, callback, shortcuts=None):

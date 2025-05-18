@@ -32,9 +32,15 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/SwordPuffin/Wardrobe.git",
-                    "tag" : "v1.0.3"
+                    "tag" : "v1.0.4"
                 }
             ]
+        },
+        {
+            "name": "libarchive",
+            "build-commands": [
+		"pip install libarchive-c"
+	     ]
         }
     ]
 }

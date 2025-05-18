@@ -17,8 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os, shutil
-
+import os, shutil, libarchive.public
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
 folders = {
@@ -52,6 +51,23 @@ def arrange_folders(download_dir, theme_dir, index, name):
                         continue
     shutil.rmtree(name)
     os.rename(new_path, new_path.replace("-wardrobe_install", ""))
+
+def extract_folders(archive_path, extract_to):
+    before = set(os.listdir(extract_to)) if os.path.exists(extract_to) else set()
+    os.chdir(extract_to)
+    libarchive.extract_file(archive_path)
+
+    # Get the directory contents after extraction
+    after = set(os.listdir(extract_to))
+    added = after - before
+
+    head_folders = set()
+    for item in added:
+        item_path = os.path.join(extract_to, item)
+        if(os.path.isdir(item_path)):
+            print(f"Extracted folder: {item_path}")
+            head_folders.add(item_path)
+    return head_folders
 
 css = """
     .rounded {

@@ -17,14 +17,13 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, zipfile, tarfile, re
+import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, json, re
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Soup", "3.0")
-
 from gi.repository import Gtk, GLib, Gio, Gdk, Adw, Soup
-from .utils import arrange_folders, css
+from .utils import arrange_folders, extract_folders, css
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
@@ -52,7 +51,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     search_url = None
     error_label = Gtk.Label(label=_("No results found :("))
     error_label.add_css_class("error"); error_label.add_css_class("title-4")
-    
+
     #This system with the txt file is really rigid, and I will probably replace it at some point.
     #Saves a python dictionary inside a plain text file with the file paths for downloaded themes. Made for easy installation and deletion.
     #Stored at ~/.var/app/io.github.swordpuffin.wardrobe/data/downloaded.txt
@@ -60,9 +59,19 @@ class WardrobeWindow(Adw.ApplicationWindow):
         downloaded = dict(ast.literal_eval(open(f"{folders[5]}/downloaded.txt", "r").read())) 
     except Exception:
         downloaded = dict()
+
+    try:
+        with open(f"{folders[5]}/prefs.json", "r") as file:
+            data = json.load(file)
+    except Exception:
+        with open(f"{folders[5]}/prefs.json", "w") as file:
+            json.dump({"cell_count": 8, "carousel_image_count": 3}, file, indent=4)
+            data = json.load(files)
+
+    cell_count = data["cell_count"]
+    carousel_image_count = data["carousel_image_count"]
+
     current_page = 0
-    carousel_image_count = 3
-    cell_count = 8
     categories = [
         {"name": "Shell Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode="},
         {"name": "Icon Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=386&sortmode="},
@@ -84,8 +93,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.set_title("")
         icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic"]
         for i, label in zip(range(6), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search"]):
-            row = Adw.ActionRow(title=label, activatable=True)
-            icon = Gtk.Image.new_from_icon_name(icons[i])
+            row = Adw.ActionRow(title=label, height_request=65, activatable=True)
+            row.add_css_class("heading")
+            icon = Gtk.Image(pixel_size=22).new_from_icon_name(icons[i])
             if(i == 0):
                 self.activated = row
                 row.add_css_class("accent")
@@ -140,7 +150,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
             print(f"Search for: {self.query}")
             self.current_page = 0
             self.search_url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&pagesize={self.cell_count}&categories=134x386x366x107x261"
-            self.loading(True)
             self.on_tab_changed(search_entry)
 
     def fetch_themes(self, index, page, action):
@@ -157,7 +166,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.grab_theme_params(api_url)
 
     def grab_theme_params(self, api_url):
-        self.loading(True)
+        if(self.carousel_image_count > 0):
+            self.loading(True)
         print("start loading xml")
         response = self.soup_get(api_url)
         print("finished loading xml")
@@ -372,48 +382,17 @@ class WardrobeWindow(Adw.ApplicationWindow):
             file.write(response)
         print(f'File downloaded successfully to {file_path}')
 
-        try:
-            head_folders = set() 
-            if(zipfile.is_zipfile(file_path)):
-                with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                    zip_ref.extractall(folder_path)
-                    for member in zip_ref.namelist():
-                        # Get the head folder or file
-                        head_folder = member.split('/')[0]
-                        head_folders.add(shutil.os.path.join(folder_path, head_folder))
-                    for item in head_folders:
-                        arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
-                shutil.os.remove(file_path)
-                print(f'ZIP file extracted successfully to {folder_path}')
-            elif(tarfile.is_tarfile(file_path)):
-                with tarfile.open(file_path, 'r') as tar_ref:
-                    tar_ref.extractall(folder_path)
-                    for member in tar_ref.getnames():
-                        # Get the head folder or file
-                        if(not shutil.os.path.isdir(member) or member == '.' or member == '_'):
-                            continue
-                        if(member.split('/')[0] != "."):
-                            head_folder = member.split('/')[0]
-                        else:
-                            head_folder = member.split('/')[1]
-                        head_folders.add(shutil.os.path.join(folder_path, head_folder))
-                    for item in head_folders:
-                        arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
-                shutil.os.remove(file_path)
-                print(f'TAR file extracted successfully to {folder_path}')
-            elif(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg"])):
-                print("Download is an image, no need to extract")
-                head_folders.add(file_path)
-            else:
-                head_folders.add(file_path)
-                print("Base file downloaded")
-            writer = open(f"{self.folders[5]}/downloaded.txt", "w")
-            self.downloaded[name] = list(head_folders)
-            writer.write(f"{self.downloaded}")
-            writer.close()
-
-        except Exception as e:
-            print(f'Failed to extract archive: {e}')
+        if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg"])):
+            head_folders = [ file_path ]
+        else:
+            head_folders = extract_folders(file_path, folder_path)
+            shutil.os.remove(file_path)
+        self.downloaded[name] = list(head_folders)
+        for item in head_folders:
+            arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
+        writer = open(f"{self.folders[5]}/downloaded.txt", "w")
+        writer.write(f"{self.downloaded}")
+        writer.close()
 
         self.update_button_to_delete(button, name, link, index)
 
