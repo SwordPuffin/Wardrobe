@@ -1,8 +1,8 @@
 # 🎨 Wardrobe
 
-**Wardrobe** is a simple utility for installing community-made **Gnome Shell**, **GTK3/4**, **icon**, and **cursor** themes — as well as wallpapers.
+**Wardrobe** is a utility for installing community-made **Gnome Shell**, **GTK3/4**, **icon**, and **cursor** themes as well as wallpapers.
 
-> ⚠️ **Wardrobe is only tested with the GNOME desktop environment.** It may not work properly on Cinnamon, Xfce, or others.
+> ⚠️ **Wardrobe has not been tested for any desktop environments other than Gnome, so do not expect it to fully work in Cinnamon, Xfce, etc.**
 
 <p align="center">
   <a href="https://flathub.org/apps/io.github.swordpuffin.wardrobe">
@@ -26,22 +26,17 @@
 
 ## 🤝 Contributing
 
-All contributions are welcome — **Wardrobe** is still under active development!
+All contributions are welcome as Wardrobe is still in active development.
 
-To get started:
+Run the following commands in a terminal:
 
-1. Create a `Projects` folder in your home directory (if it doesn't already exist):
-   ```bash
-   mkdir -p ~/Projects && cd ~/Projects
-   ```
+(Make a folder named `Projects` in your home directory if it doesn't already exist)
 
-2. Clone the repository:
-   ```bash
-   git clone https://github.com/SwordPuffin/Wardrobe
-   ```
+```bash
+cd Projects
+git clone https://github.com/SwordPuffin/Wardrobe
+```
 
-3. Open it with [GNOME Builder](https://apps.gnome.org/Builder/) or any development environment of your choice.
+Then, in [Builder](https://apps.gnome.org/Builder/) you can add it to your projects.
 
 ---
-
-Feel free to open issues, suggest improvements, or submit pull requests. 💡
