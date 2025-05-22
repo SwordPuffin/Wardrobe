@@ -72,6 +72,56 @@ def extract_folders(archive_path, extract_to):
             head_folders.add(item_path)
     return head_folders
 
+wallpaper_paths = dict()
+def _get_valid_shell_themes():
+    valid = []
+    for dirs in [f"{os.path.expanduser('~')}/.themes/", f"/run/host/usr/share/themes", f"{os.path.expanduser('~')}/.local/share/themes"]:
+        valid += walk_directories(dirs, lambda d: "/gnome-shell " in d)
+    return set(valid)
+
+def _get_valid_gtk_themes():
+    """ Only shows themes that have variations for gtk3"""
+    valid = ['Adwaita', 'HighContrast', 'HighContrastInverse']
+    for dirs in [f"{os.path.expanduser('~')}/.themes/", f"/run/host/usr/share/themes", f"{os.path.expanduser('~')}/.local/share/themes"]:
+        valid += walk_directories(dirs, lambda d: "gtk-3." in d)
+    return set(valid)
+
+def _get_valid_icon_themes():
+    valid = []
+    for dirs in [f"{os.path.expanduser('~')}/.icons/", f"/run/host/usr/share/icons", f"{os.path.expanduser('~')}/.local/share/icons"]:
+        valid += walk_directories(dirs, lambda d: "index.theme " in d)
+    return set(valid)
+
+def _get_valid_cursor_themes():
+    valid = []
+    for dirs in [f"{os.path.expanduser('~')}/.icons/", f"/run/host/usr/share/icons", f"{os.path.expanduser('~')}/.local/share/icons"]:
+        valid += walk_directories((dirs), lambda d: "cursors " in d)
+    return set(valid)
+
+def _get_valid_wallpapers():
+    valid = []
+    for dirname, _, filenames in os.walk(f"{os.path.expanduser('~')}/Pictures/"):
+        for file in filenames:
+            if any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"]):
+                valid.append(file)
+                wallpaper_paths[file] = dirname
+    return valid
+
+def walk_directories(dirs, filter_func):
+    valid = []
+    try:
+        if os.path.exists(dirs):
+            for thdir in os.listdir(dirs):
+                full_thdir = os.path.join(dirs, thdir)
+                if os.path.isdir(full_thdir):
+                    for t in os.listdir(full_thdir):
+                        full_t = os.path.join(full_thdir, t + " ")
+                        if filter_func(full_t):
+                            valid.append(thdir)
+    except:
+        print("Error parsing directories", exc_info=True)
+    return valid
+
 css = """
     .rounded {
         border-radius: 30px;

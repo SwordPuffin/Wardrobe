@@ -22,8 +22,10 @@ import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, json, r
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Soup", "3.0")
-from gi.repository import Gtk, GLib, Gio, Gdk, Adw, Soup
-from .utils import arrange_folders, extract_folders, css
+gi.require_version("Xdp", "1.0")
+gi.require_version("XdpGtk4", "1.0")
+from gi.repository import Gtk, GLib, Gio, Gdk, Adw, Soup, Xdp, XdpGtk4
+from .utils import css, arrange_folders, extract_folders, _get_valid_shell_themes, _get_valid_gtk_themes, _get_valid_icon_themes, _get_valid_cursor_themes, _get_valid_wallpapers
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
@@ -90,14 +92,31 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         self.set_default_size(800, 600)
         self.set_title("")
-        icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic"]
-        for i, label in zip(range(6), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search"]):
+        icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic", "tweak-symbolic"]
+        for i, label in zip(range(7), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search", "Tweaks"]):
             row = Adw.ActionRow(title=label, height_request=65, activatable=True)
-            row.add_css_class("heading")
             icon = Gtk.Image(pixel_size=22).new_from_icon_name(icons[i])
             if(i == 0):
                 self.activated = row
                 row.add_css_class("accent")
+            elif(i == 6):
+                expander = Adw.ExpanderRow()
+                expander.set_title(label)
+                self.tab_buttons.append(expander)
+                for i, title, func in zip(range(5), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper"],
+                [_get_valid_shell_themes(), _get_valid_icon_themes(), _get_valid_gtk_themes(), _get_valid_cursor_themes(), _get_valid_wallpapers()]):
+                    row = Adw.ActionRow(title=title)
+                    menu = Gio.Menu()
+                    for item in sorted(func):
+                        menu.append(item)
+
+                    menu_button = Gtk.MenuButton(label=title)
+                    menu_button.set_menu_model(menu)
+
+                    row.add_suffix(menu_button)
+                    row.set_activatable(False)
+                    expander.add_row(row)
+                continue
             elif(i == 5):
                 search = Adw.EntryRow(title="Search", show_apply_button=False, name=str(i))
                 self.tab_buttons.append(search)
@@ -114,6 +133,13 @@ class WardrobeWindow(Adw.ApplicationWindow):
             items.append(item)
         self.menus.set_model(items)
         self.current_page = 0
+
+        interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+        # interface_settings.set_string("gtk-theme", "Orchis-Dark")
+        print(interface_settings.get_string("gtk-theme"))
+        # active_icon_theme = interface_settings.get("icon-theme")
+        # portal = Xdp.Portal()
+        # portal.get_settings("org.freedesktop.appearance", "color-scheme")
     
     def category_index(self, index):
         index = int(index)
