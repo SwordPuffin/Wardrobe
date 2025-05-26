@@ -16,7 +16,8 @@
         "--filesystem=xdg-run/dconf",
         "--filesystem=xdg-config/dconf",
         "--filesystem=host-os:ro",
-        "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/"
+        "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/",
+	"--talk-name=org.gnome.Shell"
     ],
     "cleanup" : [
         "/include",
@@ -65,6 +66,17 @@
 		  "tag": "0.9.1"
 		}
 	      ]
+	},
+	{
+	    "name": "gnome-autoar",
+	    "buildsystem": "meson",
+	    "builddir": true,
+	    "sources": [
+		{
+		  "type": "git",
+		  "url": "https://gitlab.gnome.org/GNOME/gnome-autoar.git"
+		}
+	    ]
 	},
         {
             "name" : "wardrobe",

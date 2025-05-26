@@ -17,21 +17,33 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os, shutil
+import os, shutil, gi
+
+gi.require_version('GnomeAutoar', '0.1')
+from gi.repository import GnomeAutoar, Gio, GLib
+
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
-folders = {
-    0: ["gnome-shell"],
-    2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
-    3: ["cursors", "cursors_scalable", "index.theme"]
-}
 
 def arrange_folders(download_dir, theme_dir, index, name):
-    try:
-        print(folders[index])
-    except Exception:
-        return # Does not verify icon themes and wallpapers
-    print(download_dir)
+    folders = {
+        0: ["gnome-shell"],
+        2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
+        3: ["cursors", "cursors_scalable", "index.theme"]
+    }
+    if(index == 4):
+        return # Does not verify wallpapers
+    elif(index == 1):
+        icon_folders = os.listdir(download_dir)
+        if('index.theme' not in icon_folders):
+            print(theme_dir)
+            print(download_dir)
+            basename = os.path.basename(download_dir)
+            shutil.move(download_dir, GLib.getenv("HOST_XDG_DATA_HOME"))
+            download_dir = os.path.join(GLib.getenv("HOST_XDG_DATA_HOME"), basename)
+            for folder in os.listdir(download_dir):
+                shutil.move(os.path.join(download_dir, folder), theme_dir)
+        return
     os.mkdir(name + "-wardrobe_install"); new_path = name + "-wardrobe_install"
     for folder_name in folders[index]:
         for root, dirs, files in os.walk(download_dir, topdown=False):
@@ -54,11 +66,10 @@ def arrange_folders(download_dir, theme_dir, index, name):
 
 def extract_folders(archive_path, extract_to):
     before = set(os.listdir(extract_to)) if os.path.exists(extract_to) else set()
-
-    # os.chdir(extract_to)
-    # libarchive.extract_file(archive_path)
-
-    shutil.unpack_archive(archive_path, extract_to)
+    archive_file = Gio.File.new_for_path(archive_path)
+    destination_dir = Gio.File.new_for_path(extract_to)
+    extractor = GnomeAutoar.Extractor.new(archive_file, destination_dir)
+    extractor.start()
 
     # Get the directory contents after extraction
     after = set(os.listdir(extract_to))

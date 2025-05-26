@@ -40,8 +40,7 @@ locale.bindtextdomain('wardrobe', localedir)
 locale.textdomain('wardrobe')
 gettext.install('wardrobe', localedir)
 
-
-#All code related to schemas was taken from Refine (thanks Hari)
+#All code not here by default is taken from Refine
 #https://gitlab.gnome.org/TheEvilSkeleton/Refine
 
 if __name__ == '__main__':

@@ -92,31 +92,13 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         self.set_default_size(800, 600)
         self.set_title("")
-        icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic", "tweak-symbolic"]
-        for i, label in zip(range(7), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search", "Tweaks"]):
+        icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic"]
+        for i, label in zip(range(6), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search"]):
             row = Adw.ActionRow(title=label, height_request=65, activatable=True)
             icon = Gtk.Image(pixel_size=22).new_from_icon_name(icons[i])
             if(i == 0):
                 self.activated = row
                 row.add_css_class("accent")
-            elif(i == 6):
-                expander = Adw.ExpanderRow()
-                expander.set_title(label)
-                self.tab_buttons.append(expander)
-                for i, title, func in zip(range(5), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper"],
-                [_get_valid_shell_themes(), _get_valid_icon_themes(), _get_valid_gtk_themes(), _get_valid_cursor_themes(), _get_valid_wallpapers()]):
-                    row = Adw.ActionRow(title=title)
-                    menu = Gio.Menu()
-                    for item in sorted(func):
-                        menu.append(item)
-
-                    menu_button = Gtk.MenuButton(label=title)
-                    menu_button.set_menu_model(menu)
-
-                    row.add_suffix(menu_button)
-                    row.set_activatable(False)
-                    expander.add_row(row)
-                continue
             elif(i == 5):
                 search = Adw.EntryRow(title="Search", show_apply_button=False, name=str(i))
                 self.tab_buttons.append(search)
@@ -133,13 +115,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
             items.append(item)
         self.menus.set_model(items)
         self.current_page = 0
-
-        interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
-        # interface_settings.set_string("gtk-theme", "Orchis-Dark")
-        print(interface_settings.get_string("gtk-theme"))
-        # active_icon_theme = interface_settings.get("icon-theme")
-        # portal = Xdp.Portal()
-        # portal.get_settings("org.freedesktop.appearance", "color-scheme")
     
     def category_index(self, index):
         index = int(index)
@@ -205,7 +180,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
             elif(str(type(child)) == "<class 'gi.repository.Gtk.Button'>" or str(type(child)) == "<class 'gi.repository.Gtk.Label'>"):
                 self.category_box.remove(child)
         if(not flowbox_in_theme_grid):
-            print("flowbox not in grid")
             theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
             self.category_box.append(theme_grid)
             scrollbox = Gtk.ScrolledWindow(vexpand=True, child=self.category_box)
@@ -379,16 +353,21 @@ class WardrobeWindow(Adw.ApplicationWindow):
             label = Gtk.Label(label=_(download_names[count]), xalign=0, margin_start=10)
             label.add_css_class("title-4")
 
+            use_button = None
             if(label.get_label() in self.downloaded.keys()):
                 button = Gtk.Button(label=_("Delete"), halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("destructive-action")
                 button.connect("clicked", self.delete_item, label.get_label(), link, self.category_index(index))
+                use_button = Gtk.Button(label=(_("Use")), margin_start=8, halign=Gtk.Align.END)
+                use_button.connect("clicked", self.set_theme, index, self.downloaded[label.get_label()])
             else:
                 button = Gtk.Button(label=_("Download"), halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("suggested-action")
                 button.connect("clicked", self.on_download_button_clicked, link, self.category_index(index), download_names[count])
-            row.append(label)
             row.append(button)
+            if(use_button is not None):
+                row.append(use_button)
+            row.prepend(label)
             listbox.append(row)
             count += 1
 
@@ -407,7 +386,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             file.write(response)
         print(f'File downloaded successfully to {file_path}')
 
-        if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg"])):
+        if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"])):
             head_folders = [ file_path ]
         else:
             head_folders = extract_folders(file_path, folder_path)
@@ -418,17 +397,49 @@ class WardrobeWindow(Adw.ApplicationWindow):
         writer = open(f"{self.folders[5]}/downloaded.txt", "w")
         writer.write(f"{self.downloaded}")
         writer.close()
+        self.update_button_to_delete(button, name, link, index, list(head_folders))
 
-        self.update_button_to_delete(button, name, link, index)
-
-    def update_button_to_delete(self, button, name, link, index):
+    def update_button_to_delete(self, button, name, link, index, installed_folders):
         button.set_label("Delete")
         button.remove_css_class("suggested-action")
         button.add_css_class("destructive-action")
         button.disconnect_by_func(self.on_download_button_clicked)
         button.connect("clicked", self.delete_item, name, link, index)
 
+        use_button = Gtk.Button(label=(_("Use")), margin_start=8)
+        use_button.connect("clicked", self.set_theme, index, installed_folders)
+        button.get_parent().append(use_button)
+
+    def set_theme(self, button, index, installed_folders):
+        interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+        match(index):
+            case(0):
+                print("shell")
+            case(1):
+                interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[0]))
+            case(2):
+                interface_settings.set_string("gtk-theme", shutil.os.path.basename(installed_folders[0]))
+            case(3):
+                interface_settings.set_string("cursor-theme", shutil.os.path.basename(installed_folders[0]))
+            case(4):
+                print(installed_folders[0])
+                if(shutil.os.path.isdir(installed_folders[0])):
+                    for root, dirs, files in shutil.os.walk(installed_folders[0]):
+                        for file in files:
+                            if any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"]):
+                                image = shutil.os.path.join(root, file)
+                else:
+                    image = installed_folders[0]
+                portal = Xdp.Portal()
+                parent = XdpGtk4.parent_new_gtk(self)
+                portal.set_wallpaper(
+                    parent,
+                    f"file://{image}",
+                    Xdp.WallpaperFlags.PREVIEW | Xdp.WallpaperFlags.BACKGROUND | Xdp.WallpaperFlags.LOCKSCREEN
+                )
+
     def delete_item(self, button, name, link, index):
+        button.get_parent().remove(button.get_parent().get_last_child())
         self.downloaded = dict(ast.literal_eval(open(f"{self.folders[5]}/downloaded.txt", "r").read())) 
         for path in self.downloaded[name]:
             try:

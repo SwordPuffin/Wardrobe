@@ -1,3 +1,6 @@
+/* Code taken from Refine */
+/* https://gitlab.gnome.org/TheEvilSkeleton/Refine */
+
 diff --git a/engine/dconf-engine-source-user.c b/engine/dconf-engine-source-user.c
 index 1657875..e4f8786 100644
 --- a/engine/dconf-engine-source-user.c
