@@ -25,7 +25,7 @@ gi.require_version("Soup", "3.0")
 gi.require_version("Xdp", "1.0")
 gi.require_version("XdpGtk4", "1.0")
 from gi.repository import Gtk, GLib, Gio, Gdk, Adw, Soup, Xdp, XdpGtk4
-from .utils import css, arrange_folders, extract_folders, _get_valid_shell_themes, _get_valid_gtk_themes, _get_valid_icon_themes, _get_valid_cursor_themes, _get_valid_wallpapers
+from .utils import css, arrange_folders
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
 class WardrobeWindow(Adw.ApplicationWindow):
@@ -389,11 +389,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
         if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"])):
             head_folders = [ file_path ]
         else:
-            head_folders = extract_folders(file_path, folder_path)
+            head_folders = arrange_folders(file_path, folder_path, index)
             shutil.os.remove(file_path)
         self.downloaded[name] = list(head_folders)
-        for item in head_folders:
-            arrange_folders(shutil.os.path.join(folder_path, item), folder_path, index, item)
         writer = open(f"{self.folders[5]}/downloaded.txt", "w")
         writer.write(f"{self.downloaded}")
         writer.close()
