@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 capture_output=True,
                 text=True,
             )
-            host_xdg_data_dirs = map(Path, output.stdout.strip().split(os.pathsep))
+            host_xdg_data_dirs = map(Path, output.stdout.strip().split(os.pathsep)); print(pkgdatadir)
 
             dconf_bridge_path = Path(GLib.get_user_runtime_dir(), "dconf-bridge")
             dconf_bridge_path.mkdir(parents=True, exist_ok=True)
@@ -67,20 +67,29 @@ if __name__ == '__main__':
             temporary_directory = context.enter_context(TemporaryDirectory(dir=dconf_bridge_path))
             Path(temporary_directory, "glib-2.0").mkdir()
 
-            for directory in host_xdg_data_dirs:
-                if not directory.is_relative_to(Path(os.sep, "usr")):
-                    continue
-                host_path = Path(os.sep, "run", "host", directory.relative_to(os.sep))
-                schemas_path = Path(host_path, "glib-2.0", "schemas")
-                if not schemas_path.exists():
-                    continue
+        for directory in host_xdg_data_dirs:
+            if not directory.is_relative_to(Path(os.sep, "usr")):
+                continue
 
-                Path(temporary_directory, "glib-2.0", "schemas").symlink_to(schemas_path)
+            host_path = Path(os.sep, "run", "host", directory.relative_to(os.sep))
+            schemas_path = host_path / "glib-2.0" / "schemas"
+            if not schemas_path.exists():
+                continue
 
-                xdg_data_dirs = os.environ["XDG_DATA_DIRS"].split(os.pathsep)
-                xdg_data_dirs.insert(0, temporary_directory)
+            # Look for specific schema file (optional extra check)
+            schema_file = schemas_path / "org.gnome.shell.extensions.user-theme.gschema.xml"
+            if not schema_file.exists():
+                continue  # Optional: skip if user-theme schema not present
 
-                os.environ["XDG_DATA_DIRS"] = os.pathsep.join(xdg_data_dirs)
+            # Only symlink once
+            dest_schemas_path = Path(temporary_directory, "glib-2.0", "schemas")
+            if not dest_schemas_path.exists():
+                dest_schemas_path.symlink_to(schemas_path)
+
+            xdg_data_dirs = os.environ["XDG_DATA_DIRS"].split(os.pathsep)
+            xdg_data_dirs.insert(0, temporary_directory)
+
+            os.environ["XDG_DATA_DIRS"] = os.pathsep.join(xdg_data_dirs)
 
     from wardrobe import main
     sys.exit(main.main(VERSION))

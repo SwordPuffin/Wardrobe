@@ -16,8 +16,7 @@
         "--filesystem=xdg-run/dconf",
         "--filesystem=xdg-config/dconf",
         "--filesystem=host-os:ro",
-        "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/",
-	"--talk-name=org.gnome.Shell"
+        "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/"
     ],
     "cleanup" : [
         "/include",

@@ -61,7 +61,13 @@ def arrange_folders(archive_path, theme_dir, index):
                 shutil.move(download_dir, GLib.getenv("HOST_XDG_DATA_HOME"))
                 download_dir = os.path.join(GLib.getenv("HOST_XDG_DATA_HOME"), basename)
                 for folder in os.listdir(download_dir):
-                    new_folder_name = folder + '-' + str(random.randint(1, 100))
+                    if('dark' in folder.lower()):
+                      extension = '-dark'
+                    elif('light' in folder.lower()):
+                      extension = '-light'
+                    else:
+                       extension = '-normal'
+                    new_folder_name = basename + extension
                     os.rename(os.path.join(download_dir, folder), os.path.join(download_dir, new_folder_name)) #Prevents file name conflict
                     shutil.move(os.path.join(download_dir, new_folder_name), theme_dir)
                 after = set(os.listdir(theme_dir))

@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import xml.etree.ElementTree as ET, gi, webbrowser, shutil, random, ast, json, re
+import xml.etree.ElementTree as ET, gi, webbrowser, shutil, ast, json, re
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -383,6 +383,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         response = self.soup_get(link)
         with open(file_path, 'wb') as file:
+            print(link)
             file.write(response)
         print(f'File downloaded successfully to {file_path}')
 
@@ -412,7 +413,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
         match(index):
             case(0):
-                print("shell")
+                shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
+                shell_settings.set_string("name", shutil.os.path.basename(installed_folders[0]))
             case(1):
                 interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[0]))
             case(2):
