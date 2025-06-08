@@ -40,10 +40,10 @@ class WardrobeWindow(Adw.ApplicationWindow):
     data_dir = GLib.getenv("HOST_XDG_DATA_HOME") #Should be ~/.local/share
     picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) #Typically ~/Pictures
     folders = {
-        0: f"{data_dir}/themes/",
-        1: f"{data_dir}/icons/",
-        2: f"{data_dir}/themes/",
-        3: f"{data_dir}/icons/",
+        0: f"{data_dir}/themes/wardrobe-install",
+        1: f"{data_dir}/icons/wardrobe-install",
+        2: f"{data_dir}/themes/wardrobe-install",
+        3: f"{data_dir}/icons/wardrobe-install",
         4: f"{picture_dir}/",
         5: f"{GLib.get_user_data_dir()}"
     }
@@ -198,6 +198,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 downloads = item.find("downloads").text if item.find("downloads").text is not None else "0"
             else: 
                 downloads = "0"
+            downloads = "{:,}".format(int(downloads))
             description = item.find("description").text if item.find("description") is not None else ""
             rating = int(item.find("score").text) / 10 if item.find("score") is not None else 0
             typeid = item.find("typeid").text if item.find("typeid") is not None else 0 #Some items don't have typeids for some reason
@@ -248,7 +249,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True)
         label.add_css_class("title-2")
-        creator_label = Gtk.Label(label=_(creator) + "\nDownloads: " + downloads, justify=Gtk.Justification.CENTER, margin_bottom=12)
+        creator_label = Gtk.Label(label=_(creator) + "\nInstalls: " + downloads, justify=Gtk.Justification.CENTER, margin_bottom=12)
         creator_label.add_css_class("creator-title")
 
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=10)
@@ -358,8 +359,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 button = Gtk.Button(label=_("Delete"), halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("destructive-action")
                 button.connect("clicked", self.delete_item, label.get_label(), link, self.category_index(index))
-                use_button = Gtk.Button(label=(_("Use")), margin_start=8, halign=Gtk.Align.END)
-                use_button.connect("clicked", self.set_theme, index, self.downloaded[label.get_label()])
+                if(index != 0):
+                    use_button = Gtk.Button(label=(_("Use")), margin_start=8, halign=Gtk.Align.END)
+                    use_button.connect("clicked", self.set_theme, index, self.downloaded[label.get_label()])
             else:
                 button = Gtk.Button(label=_("Download"), halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("suggested-action")
@@ -383,7 +385,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         response = self.soup_get(link)
         with open(file_path, 'wb') as file:
-            print(link)
             file.write(response)
         print(f'File downloaded successfully to {file_path}')
 
@@ -405,16 +406,19 @@ class WardrobeWindow(Adw.ApplicationWindow):
         button.disconnect_by_func(self.on_download_button_clicked)
         button.connect("clicked", self.delete_item, name, link, index)
 
-        use_button = Gtk.Button(label=(_("Use")), margin_start=8)
-        use_button.connect("clicked", self.set_theme, index, installed_folders)
-        button.get_parent().append(use_button)
+        if(index != 0):
+            use_button = Gtk.Button(label=(_("Use")), margin_start=8)
+            use_button.connect("clicked", self.set_theme, index, installed_folders)
+            button.get_parent().append(use_button)
 
     def set_theme(self, button, index, installed_folders):
         interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+        print(shutil.os.path.basename(installed_folders[0]))
         match(index):
             case(0):
-                shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
-                shell_settings.set_string("name", shutil.os.path.basename(installed_folders[0]))
+                print("feature currently unavailable")
+                # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
+                # shell_settings.set_string("name", shutil.os.path.basename(installed_folders[0]))
             case(1):
                 interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[0]))
             case(2):
@@ -439,7 +443,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 )
 
     def delete_item(self, button, name, link, index):
-        button.get_parent().remove(button.get_parent().get_last_child())
+        if(index != 0):
+            button.get_parent().remove(button.get_parent().get_last_child())
         self.downloaded = dict(ast.literal_eval(open(f"{self.folders[5]}/downloaded.txt", "r").read())) 
         for path in self.downloaded[name]:
             try:

@@ -26,6 +26,12 @@ from gi.repository import GnomeAutoar, Gio, GLib
 #arrange_folders moves everything into the right order
 
 def arrange_folders(archive_path, theme_dir, index):
+    check_path = os.path.dirname(theme_dir)
+    for item in os.listdir(check_path): #removes null symlinks
+        if(os.path.islink(os.path.join(check_path, item))):
+            if(not os.path.exists(os.readlink(os.path.join(check_path, item)))):
+                os.unlink(os.path.join(check_path, item))
+
     before = set(os.listdir(theme_dir)) if os.path.exists(theme_dir) else set()
     archive_file = Gio.File.new_for_path(archive_path)
     destination_dir = Gio.File.new_for_path(theme_dir)
@@ -57,24 +63,22 @@ def arrange_folders(archive_path, theme_dir, index):
             added = {}
             if('index.theme' not in icon_folders):
                 before = set(os.listdir(theme_dir)) if os.path.exists(theme_dir) else set()
-                basename = os.path.basename(download_dir)
-                shutil.move(download_dir, GLib.getenv("HOST_XDG_DATA_HOME"))
-                download_dir = os.path.join(GLib.getenv("HOST_XDG_DATA_HOME"), basename)
                 for folder in os.listdir(download_dir):
-                    if('dark' in folder.lower()):
-                      extension = '-dark'
-                    elif('light' in folder.lower()):
-                      extension = '-light'
-                    else:
-                       extension = '-normal'
-                    new_folder_name = basename + extension
-                    os.rename(os.path.join(download_dir, folder), os.path.join(download_dir, new_folder_name)) #Prevents file name conflict
-                    shutil.move(os.path.join(download_dir, new_folder_name), theme_dir)
+                    # extension = ""
+                    # if('dark' in folder.lower()):
+                    #   extension = '-dark'
+                    # elif('light' in folder.lower()):
+                    #   extension = '-light'
+                    # else:
+                    #    extension = '-' + str(random.randint(1, 100))
+                    new_folder_name = folder + '-' + str(random.getrandbits(8)) #To stop file conflicts
+                    os.symlink(os.path.join(download_dir, folder), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_folder_name)}")
                 after = set(os.listdir(theme_dir))
-                shutil.rmtree(download_dir)
                 added = list(after - before)
                 for index, item in zip(range(len(added)), added):
                     added[index] = shutil.os.path.join(theme_dir, item)
+            else:
+                os.symlink(download_dir, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(download_dir)}")
             return list(head_folders.union(set(added)))
         os.mkdir(download_dir + "-wardrobe_install"); new_path = download_dir + "-wardrobe_install"
         for folder_name in folders[index]:
@@ -94,57 +98,8 @@ def arrange_folders(archive_path, theme_dir, index):
                             continue
         shutil.rmtree(download_dir)
         os.rename(new_path, new_path.replace("-wardrobe_install", ""))
+        os.symlink(new_path.replace("-wardrobe_install", ""), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_path.replace('-wardrobe_install', ''))}")
         return head_folders
-
-# wallpaper_paths = dict()
-# def _get_valid_shell_themes():
-#     valid = []
-#     for dirs in [f"{os.path.expanduser('~')}/.themes/", f"/run/host/usr/share/themes", f"{os.path.expanduser('~')}/.local/share/themes"]:
-#         valid += walk_directories(dirs, lambda d: "/gnome-shell " in d)
-#     return set(valid)
-
-# def _get_valid_gtk_themes():
-#     """ Only shows themes that have variations for gtk3"""
-#     valid = ['Adwaita', 'HighContrast', 'HighContrastInverse']
-#     for dirs in [f"{os.path.expanduser('~')}/.themes/", f"/run/host/usr/share/themes", f"{os.path.expanduser('~')}/.local/share/themes"]:
-#         valid += walk_directories(dirs, lambda d: "gtk-3." in d)
-#     return set(valid)
-
-# def _get_valid_icon_themes():
-#     valid = []
-#     for dirs in [f"{os.path.expanduser('~')}/.icons/", f"/run/host/usr/share/icons", f"{os.path.expanduser('~')}/.local/share/icons"]:
-#         valid += walk_directories(dirs, lambda d: "index.theme " in d)
-#     return set(valid)
-
-# def _get_valid_cursor_themes():
-#     valid = []
-#     for dirs in [f"{os.path.expanduser('~')}/.icons/", f"/run/host/usr/share/icons", f"{os.path.expanduser('~')}/.local/share/icons"]:
-#         valid += walk_directories((dirs), lambda d: "cursors " in d)
-#     return set(valid)
-
-# def _get_valid_wallpapers():
-#     valid = []
-#     for dirname, _, filenames in os.walk(f"{os.path.expanduser('~')}/Pictures/"):
-#         for file in filenames:
-#             if any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"]):
-#                 valid.append(file)
-#                 wallpaper_paths[file] = dirname
-#     return valid
-
-# def walk_directories(dirs, filter_func):
-#     valid = []
-#     try:
-#         if os.path.exists(dirs):
-#             for thdir in os.listdir(dirs):
-#                 full_thdir = os.path.join(dirs, thdir)
-#                 if os.path.isdir(full_thdir):
-#                     for t in os.listdir(full_thdir):
-#                         full_t = os.path.join(full_thdir, t + " ")
-#                         if filter_func(full_t):
-#                             valid.append(thdir)
-#     except:
-#         print("Error parsing directories", exc_info=True)
-#     return valid
 
 css = """
     .rounded {
