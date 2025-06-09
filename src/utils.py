@@ -61,24 +61,29 @@ def arrange_folders(archive_path, theme_dir, index):
         elif(index == 1):
             icon_folders = os.listdir(download_dir)
             added = {}
+            before = set(os.listdir(check_path)) if os.path.exists(check_path) else set()
             if('index.theme' not in icon_folders):
-                before = set(os.listdir(theme_dir)) if os.path.exists(theme_dir) else set()
-                for folder in os.listdir(download_dir):
-                    # extension = ""
-                    # if('dark' in folder.lower()):
-                    #   extension = '-dark'
-                    # elif('light' in folder.lower()):
-                    #   extension = '-light'
-                    # else:
-                    #    extension = '-' + str(random.randint(1, 100))
-                    new_folder_name = folder + '-' + str(random.getrandbits(8)) #To stop file conflicts
+                for folder in os.listdir(download_dir): #This is all to prevent file conflicts
+                    extension = ""
+                    if('dark' in folder.lower()):
+                      extension = '-dark'
+                    elif('light' in folder.lower()):
+                      extension = '-light'
+                    parent_name = os.path.basename(download_dir).lower()
+                    correct_folder_name = folder.lower().replace(extension, '')
+                    if(parent_name in correct_folder_name):
+                        new_folder_name = correct_folder_name + extension
+                    elif(correct_folder_name in parent_name):
+                        new_folder_name = parent_name + extension
+                    else:
+                        new_folder_name = folder + '-' + str(random.getrandbits(8))
                     os.symlink(os.path.join(download_dir, folder), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_folder_name)}")
-                after = set(os.listdir(theme_dir))
-                added = list(after - before)
                 for index, item in zip(range(len(added)), added):
                     added[index] = shutil.os.path.join(theme_dir, item)
             else:
                 os.symlink(download_dir, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(download_dir)}")
+            after = set(os.listdir(check_path))
+            added = list(after - before)
             return list(head_folders.union(set(added)))
         os.mkdir(download_dir + "-wardrobe_install"); new_path = download_dir + "-wardrobe_install"
         for folder_name in folders[index]:
@@ -99,6 +104,7 @@ def arrange_folders(archive_path, theme_dir, index):
         shutil.rmtree(download_dir)
         os.rename(new_path, new_path.replace("-wardrobe_install", ""))
         os.symlink(new_path.replace("-wardrobe_install", ""), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_path.replace('-wardrobe_install', ''))}")
+        head_folders.add(os.path.basename(new_path.replace('-wardrobe_install', '')))
         return head_folders
 
 css = """

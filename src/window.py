@@ -413,20 +413,20 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     def set_theme(self, button, index, installed_folders):
         interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
-        print(shutil.os.path.basename(installed_folders[0]))
+        installed_folders.sort()
+        print(installed_folders)
         match(index):
             case(0):
                 print("feature currently unavailable")
                 # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
                 # shell_settings.set_string("name", shutil.os.path.basename(installed_folders[0]))
             case(1):
-                interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[0]))
+                interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[1]))
             case(2):
-                interface_settings.set_string("gtk-theme", shutil.os.path.basename(installed_folders[0]))
+                interface_settings.set_string("gtk-theme", shutil.os.path.basename(installed_folders[1]))
             case(3):
-                interface_settings.set_string("cursor-theme", shutil.os.path.basename(installed_folders[0]))
+                interface_settings.set_string("cursor-theme", shutil.os.path.basename(installed_folders[1]))
             case(4):
-                print(installed_folders[0])
                 if(shutil.os.path.isdir(installed_folders[0])):
                     for root, dirs, files in shutil.os.walk(installed_folders[0]):
                         for file in files:
