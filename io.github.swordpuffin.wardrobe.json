@@ -13,9 +13,6 @@
 	"--filesystem=home",
 	"--talk-name=org.freedesktop.Flatpak",
         "--talk-name=ca.desrt.dconf",
-        "--filesystem=xdg-run/dconf",
-        "--filesystem=xdg-config/dconf",
-        "--filesystem=host-os:ro",
         "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/"
     ],
     "cleanup" : [
@@ -73,7 +70,8 @@
 	    "sources": [
 		{
 		  "type": "git",
-		  "url": "https://gitlab.gnome.org/GNOME/gnome-autoar.git"
+		  "url": "https://gitlab.gnome.org/GNOME/gnome-autoar.git",
+		  "tag": "0.4.5"
 		}
 	    ]
 	},
