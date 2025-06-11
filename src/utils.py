@@ -108,10 +108,6 @@ def arrange_folders(archive_path, theme_dir, index):
         return head_folders
 
 css = """
-    .rounded {
-        border-radius: 30px;
-        border: 0px solid;
-    }
     .creator-title {
         opacity: 0.65;
         font-size: 12pt;

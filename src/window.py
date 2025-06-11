@@ -245,7 +245,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         scrolled_window.get_vadjustment().set_value(vadj)
 
     def add_theme_to_list(self, theme_grid, title, creator, downloads, theme_url, download_links, download_names, description, index, rating, image_links):
-        theme_box = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL)
+        theme_box = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
 
         label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True)
         label.add_css_class("title-2")
@@ -255,19 +255,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=10)
         label_box.append(label)
         label_box.append(creator_label)
-        theme_box.append(label_box)
 
         carousel = Adw.Carousel(halign=Gtk.Align.CENTER, margin_top=8, allow_scroll_wheel=False)
         for image in image_links:
             self.get_image_from_url(image, _, carousel, theme_box)
 
-        navigation_box = Gtk.Box(halign=Gtk.Align.CENTER, visible=False)
-        navigation_box.append(carousel)
-
         indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER)
-        carousel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
-        carousel_box.append(navigation_box); carousel_box.append(indicators)
-        carousel.add_css_class("rounded")
+        carousel_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        carousel_box.append(indicators)
 
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER, spacing=10, margin_bottom=5)
         button_box.add_css_class("title-4")
@@ -291,18 +286,22 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         description_label = Gtk.Label(label=re.sub(r'<.*?>', '', description), selectable=True, wrap=True)
         if(len(image_links) > 1):
-            prev_button = Gtk.Button(label="<", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, hexpand=True, margin_end=12, margin_start=12); navigation_box.prepend(prev_button)
+            prev_button = Gtk.Button(icon_name="arrow-left-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, hexpand=True, margin_end=12, margin_start=12); carousel_box.prepend(prev_button)
             prev_button.add_css_class("circular")
-            next_button = Gtk.Button(label=">", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, hexpand=True, margin_start=12, margin_end=12); navigation_box.append(next_button)
+            next_button = Gtk.Button(icon_name="arrow-right-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, hexpand=True, margin_start=12, margin_end=12); carousel_box.append(next_button)
             next_button.add_css_class("circular")
             prev_button.connect("clicked", self.on_prev_clicked, carousel)
             next_button.connect("clicked", self.on_next_clicked, carousel)
+
         description_scrolled_window = Gtk.ScrolledWindow(child=description_label, margin_top=8, margin_bottom=5, margin_start=12, margin_end=12, height_request=150)
+        label_box.append(description_scrolled_window)
+        carousel_box.prepend(carousel)
+        carousel_box.append(label_box)
         theme_box.append(button_box)
-        theme_box.append(description_scrolled_window)
         theme_box.prepend(carousel_box)
         cell = Gtk.Frame(child=theme_box); cell.add_css_class("card")
-        theme_grid.insert(cell, -1)
+        clamp = Adw.Clamp(maximum_size=750, tightening_threshold=350, child=cell)
+        theme_grid.insert(clamp, -1)
 
     def on_prev_clicked(self, button, carousel):
         index = carousel.get_position()
@@ -322,9 +321,11 @@ class WardrobeWindow(Adw.ApplicationWindow):
         bytes = session.send_and_read_finish(result)
         if(message.get_status() != Soup.Status.OK):
             raise Exception(f"Got {message.get_status()}, {message.get_reason_phrase()}")
-        image = Gtk.Image.new_from_paintable(Gdk.Texture.new_from_bytes(bytes))
-        image.set_pixel_size(260)
-        carousel.append(image)
+        image = Gtk.Picture.new_for_paintable(Gdk.Texture.new_from_bytes(bytes))
+        image.set_content_fit(Gtk.ContentFit.CONTAIN)
+        image.add_css_class("pill")
+        clamp = Adw.Clamp(maximum_size=200, tightening_threshold=125, child=image)
+        carousel.append(clamp)
         carousel.get_parent().set_visible(True)
         self.loading(False)
 
@@ -356,14 +357,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
             use_button = None
             if(label.get_label() in self.downloaded.keys()):
-                button = Gtk.Button(label=_("Delete"), halign=Gtk.Align.END, hexpand=True)
+                button = Gtk.Button(icon_name="user-trash-symbolic", halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("destructive-action")
                 button.connect("clicked", self.delete_item, label.get_label(), link, self.category_index(index))
                 if(index != 0):
                     use_button = Gtk.Button(label=(_("Use")), margin_start=8, halign=Gtk.Align.END)
                     use_button.connect("clicked", self.set_theme, index, self.downloaded[label.get_label()])
             else:
-                button = Gtk.Button(label=_("Download"), halign=Gtk.Align.END, hexpand=True)
+                button = Gtk.Button(icon_name="download-symbolic", halign=Gtk.Align.END, hexpand=True)
                 button.add_css_class("suggested-action")
                 button.connect("clicked", self.on_download_button_clicked, link, self.category_index(index), download_names[count])
             row.append(button)
@@ -400,7 +401,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.update_button_to_delete(button, name, link, index, list(head_folders))
 
     def update_button_to_delete(self, button, name, link, index, installed_folders):
-        button.set_label("Delete")
+        button.set_icon_name("user-trash-symbolic")
         button.remove_css_class("suggested-action")
         button.add_css_class("destructive-action")
         button.disconnect_by_func(self.on_download_button_clicked)
@@ -460,7 +461,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
         self.update_button_to_download(button, name, link, index)
         
     def update_button_to_download(self, button, name, link, index):
-        button.set_label("Download")
+        button.set_icon_name("download-symbolic")
         button.add_css_class("suggested-action")
         button.remove_css_class("destructive-action")
         button.disconnect_by_func(self.delete_item)
