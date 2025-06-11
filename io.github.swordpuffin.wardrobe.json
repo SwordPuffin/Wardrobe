@@ -11,8 +11,7 @@
         "--socket=wayland",
         "--device=dri",
 	"--filesystem=home",
-	"--talk-name=org.freedesktop.Flatpak",
-        "--talk-name=ca.desrt.dconf",
+	"--talk-name=ca.desrt.dconf",
         "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/"
     ],
     "cleanup" : [
@@ -83,7 +82,7 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/SwordPuffin/Wardrobe.git",
-                    "tag" : "v1.0.7"
+                    "tag" : "v1.0.8"
                 }
             ]
         }
