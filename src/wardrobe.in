@@ -55,12 +55,16 @@ if __name__ == '__main__':
     with contextlib.ExitStack() as context:
         if Xdp.Portal.running_under_flatpak():
             output = subprocess.run(
-                ("flatpak-spawn", "--host", "sh", "-c", 'echo "$XDG_DATA_DIRS"'),
+                ("sh", "-c", 'echo "$XDG_DATA_DIRS"'),
                 capture_output=True,
                 text=True,
             )
-            host_xdg_data_dirs = map(Path, output.stdout.strip().split(os.pathsep))
 
+            folders = output.stdout.strip().split(os.pathsep)
+            if(folders == None):
+            	folders = ['/app/share', '/usr/share', 'usr/share/runtime/share', '/run/host/user-share', '/run/host/share']
+
+            host_xdg_data_dirs = map(Path, folders)
             dconf_bridge_path = Path(GLib.get_user_runtime_dir(), "dconf-bridge")
             dconf_bridge_path.mkdir(parents=True, exist_ok=True)
 
