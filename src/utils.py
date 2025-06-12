@@ -36,7 +36,8 @@ def arrange_folders(archive_path, theme_dir, index):
     archive_file = Gio.File.new_for_path(archive_path)
     destination_dir = Gio.File.new_for_path(theme_dir)
     extractor = GnomeAutoar.Extractor.new(archive_file, destination_dir)
-    extractor.start()
+
+    extractor.start_async(None)
 
     # Get the directory contents after extraction
     after = set(os.listdir(theme_dir))

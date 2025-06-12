@@ -133,15 +133,18 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 print("missing index: " + str(index))
                 return(index)
     
-    def soup_get(self, api_url):
+    def soup_get(self, api_url, func):
         session = Soup.Session()
         message = Soup.Message.new("GET", api_url)   
-        response_bytes = session.send_and_read(message)
+        session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.on_response, func)
+
+    def on_response(self, session, result, func):
+        response_bytes = session.send_and_read_finish(result)
         try:
             response_text = response_bytes.get_data().decode()
         except(Exception):
             response_text = response_bytes.get_data()
-        return response_text 
+        func(response_text)
 
     def on_search(self, search_entry):
         self.query = search_entry.get_text().strip()
@@ -169,9 +172,10 @@ class WardrobeWindow(Adw.ApplicationWindow):
         if(self.carousel_image_count > 0):
             self.loading(True)
         print("start loading xml")
-        response = self.soup_get(api_url)
+        self.soup_get(api_url, self.grab_theme_params_finish)
         print("finished loading xml")
 
+    def grab_theme_params_finish(self, response):
         flowbox_in_theme_grid = False
         for child in self.category_box:
             if(str(type(child)) == "<class 'gi.repository.Gtk.FlowBox'>"):
@@ -180,7 +184,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             elif(str(type(child)) == "<class 'gi.repository.Gtk.Button'>" or str(type(child)) == "<class 'gi.repository.Gtk.Label'>"):
                 self.category_box.remove(child)
         if(not flowbox_in_theme_grid):
-            theme_grid = Gtk.FlowBox(row_spacing=12, column_spacing=12, homogeneous=True, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
+            theme_grid = Gtk.FlowBox(row_spacing=12, homogeneous=False, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
             self.category_box.append(theme_grid)
             scrollbox = Gtk.ScrolledWindow(vexpand=True, child=self.category_box)
             self.page.set_content(scrollbox)
@@ -261,10 +265,10 @@ class WardrobeWindow(Adw.ApplicationWindow):
             self.get_image_from_url(image, _, carousel, theme_box)
 
         indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER)
-        carousel_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        carousel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         carousel_box.append(indicators)
 
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER, spacing=10, margin_bottom=5)
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER, spacing=10)
         button_box.add_css_class("title-4")
 
         rating_box = Gtk.Button(child=Gtk.Label(label=_(str(rating)) + " ★"))
@@ -284,7 +288,16 @@ class WardrobeWindow(Adw.ApplicationWindow):
         browser_button.connect("clicked", self.on_view_button_clicked, theme_url)
         button_box.append(rating_box); button_box.append(download_button); button_box.append(browser_button)
 
-        description_label = Gtk.Label(label=re.sub(r'<.*?>', '', description), selectable=True, wrap=True)
+
+        if(len(re.sub(r'<.*?>', '', description)) > 150):
+            description_label = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            description_label.append(Gtk.Label(label=re.sub(r'<.*?>', '', description)[:150] + '...', selectable=True, wrap=True))
+            more_button = Gtk.Button(label=(_("More")), hexpand=True, halign=Gtk.Align.CENTER, margin_bottom=5)
+            more_button.add_css_class("pill")
+            description_label.append(more_button)
+        else:
+            description_label = Gtk.Label(label=re.sub(r'<.*?>', '', description))
+
         if(len(image_links) > 1):
             prev_button = Gtk.Button(icon_name="arrow-left-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, hexpand=True, margin_end=12, margin_start=12); carousel_box.prepend(prev_button)
             prev_button.add_css_class("circular")
@@ -293,14 +306,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
             prev_button.connect("clicked", self.on_prev_clicked, carousel)
             next_button.connect("clicked", self.on_next_clicked, carousel)
 
-        description_scrolled_window = Gtk.ScrolledWindow(child=description_label, margin_top=8, margin_bottom=5, margin_start=12, margin_end=12, height_request=150)
-        label_box.append(description_scrolled_window)
+        # description_scrolled_window = Gtk.ScrolledWindow(child=description_label, margin_top=8, margin_bottom=5, margin_start=12, margin_end=12, height_request=150)
+        label_box.append(description_label)
         carousel_box.prepend(carousel)
         carousel_box.append(label_box)
         theme_box.append(button_box)
         theme_box.prepend(carousel_box)
         cell = Gtk.Frame(child=theme_box); cell.add_css_class("card")
-        clamp = Adw.Clamp(maximum_size=750, tightening_threshold=350, child=cell)
+        clamp = Adw.Clamp(maximum_size=375, tightening_threshold=150, child=cell)
         theme_grid.insert(clamp, -1)
 
     def on_prev_clicked(self, button, carousel):
@@ -321,11 +334,10 @@ class WardrobeWindow(Adw.ApplicationWindow):
         bytes = session.send_and_read_finish(result)
         if(message.get_status() != Soup.Status.OK):
             raise Exception(f"Got {message.get_status()}, {message.get_reason_phrase()}")
-        image = Gtk.Picture.new_for_paintable(Gdk.Texture.new_from_bytes(bytes))
-        image.set_content_fit(Gtk.ContentFit.CONTAIN)
-        image.add_css_class("pill")
-        clamp = Adw.Clamp(maximum_size=200, tightening_threshold=125, child=image)
-        carousel.append(clamp)
+        image = Gtk.Picture(height_request=220, width_request=220).new_for_paintable(Gdk.Texture.new_from_bytes(bytes))
+        image.set_content_fit(Gtk.ContentFit.COVER)
+        # clamp = Adw.Clamp(maximum_size=150, tightening_threshold=125, child=image, height_request=180)
+        carousel.append(image)
         carousel.get_parent().set_visible(True)
         self.loading(False)
 
@@ -384,21 +396,23 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         file_path = shutil.os.path.join(folder_path, name)
 
-        response = self.soup_get(link)
-        with open(file_path, 'wb') as file:
-            file.write(response)
-        print(f'File downloaded successfully to {file_path}')
+        def save_download(response):
+            with open(file_path, 'wb') as file:
+                file.write(response)
+            print(f'File downloaded successfully to {file_path}')
 
-        if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"])):
-            head_folders = [ file_path ]
-        else:
-            head_folders = arrange_folders(file_path, folder_path, index)
-            shutil.os.remove(file_path)
-        self.downloaded[name] = list(head_folders)
-        writer = open(f"{self.folders[5]}/downloaded.txt", "w")
-        writer.write(f"{self.downloaded}")
-        writer.close()
-        self.update_button_to_delete(button, name, link, index, list(head_folders))
+            if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"])):
+                head_folders = [ file_path ]
+            else:
+                head_folders = arrange_folders(file_path, folder_path, index)
+                shutil.os.remove(file_path)
+            self.downloaded[name] = list(head_folders)
+            writer = open(f"{self.folders[5]}/downloaded.txt", "w")
+            writer.write(f"{self.downloaded}")
+            writer.close()
+            self.update_button_to_delete(button, name, link, index, list(head_folders))
+
+        self.soup_get(link, save_download)
 
     def update_button_to_delete(self, button, name, link, index, installed_folders):
         button.set_icon_name("user-trash-symbolic")
