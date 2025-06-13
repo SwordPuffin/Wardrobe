@@ -251,7 +251,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
     def add_theme_to_list(self, theme_grid, title, creator, downloads, theme_url, download_links, download_names, description, index, rating, image_links):
         theme_box = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
 
-        label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True)
+        label = Gtk.Label(label=_(title), justify=Gtk.Justification.CENTER, wrap=True, margin_start=12, margin_end=12)
         label.add_css_class("title-2")
         creator_label = Gtk.Label(label=_(creator) + "\nInstalls: " + downloads, justify=Gtk.Justification.CENTER, margin_bottom=12)
         creator_label.add_css_class("creator-title")
@@ -260,15 +260,17 @@ class WardrobeWindow(Adw.ApplicationWindow):
         label_box.append(label)
         label_box.append(creator_label)
 
+        carousel_box = Gtk.Box()
         carousel = Adw.Carousel(halign=Gtk.Align.CENTER, margin_top=8, allow_scroll_wheel=False)
+        carousel_box.prepend(carousel)
         for image in image_links:
-            self.get_image_from_url(image, _, carousel, theme_box)
+            self.get_image_from_url(image, _, carousel)
 
-        indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER)
-        carousel_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        carousel_box.append(indicators)
+        indicators = Adw.CarouselIndicatorDots(carousel=carousel, halign=Gtk.Align.CENTER, margin_top=5)
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        main_box.append(indicators)
 
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER, spacing=10)
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.CENTER, spacing=10, margin_start=8, margin_end=8, margin_bottom=8)
         button_box.add_css_class("title-4")
 
         rating_box = Gtk.Button(child=Gtk.Label(label=_(str(rating)) + " ★"))
@@ -288,15 +290,14 @@ class WardrobeWindow(Adw.ApplicationWindow):
         browser_button.connect("clicked", self.on_view_button_clicked, theme_url)
         button_box.append(rating_box); button_box.append(download_button); button_box.append(browser_button)
 
-
-        if(len(re.sub(r'<.*?>', '', description)) > 150):
-            description_label = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            description_label.append(Gtk.Label(label=re.sub(r'<.*?>', '', description)[:150] + '...', selectable=True, wrap=True))
-            more_button = Gtk.Button(label=(_("More")), hexpand=True, halign=Gtk.Align.CENTER, margin_bottom=5)
-            more_button.add_css_class("pill")
-            description_label.append(more_button)
+        if(len(re.sub(r'<.*?>', '', description)) > 100):
+            text = re.sub(r'<.*?>', '', description)[:100] + (_("... (Click for more)"))
         else:
-            description_label = Gtk.Label(label=re.sub(r'<.*?>', '', description))
+            text = re.sub(r'<.*?>', '', description)
+
+        description_label = Gtk.Button(margin_start=12, margin_end=12, margin_bottom=12, vexpand=True)
+        description_label.set_child(Gtk.Label(label=text, wrap=True))
+        description_label.connect("clicked", self.on_description_clicked,  re.sub(r'<.*?>', '', description))
 
         if(len(image_links) > 1):
             prev_button = Gtk.Button(icon_name="arrow-left-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, hexpand=True, margin_end=12, margin_start=12); carousel_box.prepend(prev_button)
@@ -306,15 +307,22 @@ class WardrobeWindow(Adw.ApplicationWindow):
             prev_button.connect("clicked", self.on_prev_clicked, carousel)
             next_button.connect("clicked", self.on_next_clicked, carousel)
 
-        # description_scrolled_window = Gtk.ScrolledWindow(child=description_label, margin_top=8, margin_bottom=5, margin_start=12, margin_end=12, height_request=150)
         label_box.append(description_label)
-        carousel_box.prepend(carousel)
-        carousel_box.append(label_box)
-        theme_box.append(button_box)
-        theme_box.prepend(carousel_box)
+        main_box.prepend(carousel_box)
+        main_box.append(label_box)
+        main_box.append(button_box)
+        theme_box.prepend(main_box)
         cell = Gtk.Frame(child=theme_box); cell.add_css_class("card")
-        clamp = Adw.Clamp(maximum_size=375, tightening_threshold=150, child=cell)
+        clamp = Adw.Clamp(maximum_size=400, tightening_threshold=250, child=cell)
         theme_grid.insert(clamp, -1)
+
+    def on_description_clicked(self, button, text):
+        dialog = Gtk.MessageDialog(modal=True, transient_for=self, buttons=Gtk.ButtonsType.CLOSE)
+        dialog.set_default_size(600, 600)
+        scrolled_window=Gtk.ScrolledWindow(child=Gtk.Label(label=text, wrap=True, selectable=True), vexpand=True, hexpand=True, margin_start=8, margin_end=8)
+        dialog.get_content_area().append(scrolled_window)
+        dialog.connect("response", lambda d, r: dialog.destroy())
+        dialog.show()
 
     def on_prev_clicked(self, button, carousel):
         index = carousel.get_position()
@@ -330,32 +338,30 @@ class WardrobeWindow(Adw.ApplicationWindow):
             index = 0
             carousel.scroll_to(carousel.get_nth_page(0), 250)
 
-    def get_carousel_images(self, session, result, message, carousel, theme_box):
+    def get_carousel_images(self, session, result, message, carousel):
         bytes = session.send_and_read_finish(result)
         if(message.get_status() != Soup.Status.OK):
             raise Exception(f"Got {message.get_status()}, {message.get_reason_phrase()}")
-        image = Gtk.Picture(height_request=220, width_request=220).new_for_paintable(Gdk.Texture.new_from_bytes(bytes))
-        image.set_content_fit(Gtk.ContentFit.COVER)
+        image = Gtk.Image.new_from_paintable(Gdk.Texture.new_from_bytes(bytes))
+        # image.set_content_fit(Gtk.ContentFit.COVER)
+        image.set_pixel_size(280)
         # clamp = Adw.Clamp(maximum_size=150, tightening_threshold=125, child=image, height_request=180)
         carousel.append(image)
-        carousel.get_parent().set_visible(True)
         self.loading(False)
 
-    def get_image_from_url(self, url, row, carousel, theme_box):
+    def get_image_from_url(self, url, row, carousel):
         session = Soup.Session()
         message = Soup.Message(method="GET", uri=GLib.Uri.parse(url, GLib.UriFlags.NONE))
-        session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.get_carousel_images, message, carousel, theme_box)
+        session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.get_carousel_images, message, carousel)
 
     def loading(self, activate):
         self.spinner.set_spinning(activate)
 
     def download_item(self, button, download_links, download_names, index):
         dialog = Gtk.MessageDialog(transient_for=self, modal=True, buttons=Gtk.ButtonsType.CLOSE, title="Select Download Link")
-        dialog.set_default_size(600, 600)
-        label = Gtk.Label(label=_("*Larger files may cause temporary freezes, just wait until the download completes"), wrap=True)
-        label.add_css_class("warning")
-        info_label = Gtk.Label(label=_(f"<b>Downloads will be sent to:  {self.folders[self.category_index(index)]}</b>"), use_markup=True)
-        dialog.get_content_area().append(label); dialog.get_content_area().append(info_label)
+        dialog.set_default_size(650, 600)
+        info_label = Gtk.Label(label=_(f"<b>Downloads will be sent to: {self.folders[self.category_index(index)]} </b>"), use_markup=True)
+        dialog.get_content_area().append(info_label)
 
         listbox = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         scroll = Gtk.ScrolledWindow(vexpand=True, child=listbox)
@@ -391,6 +397,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     def on_download_button_clicked(self, button, link, index, name):
         folder_path = self.folders.get(index, "Downloads")
+        spinner = Gtk.Spinner(spinning=True)
+        button.set_child(spinner)
         if(not shutil.os.path.exists(folder_path)):
             shutil.os.makedirs(folder_path, exist_ok=True)
 

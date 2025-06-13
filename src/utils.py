@@ -37,76 +37,78 @@ def arrange_folders(archive_path, theme_dir, index):
     destination_dir = Gio.File.new_for_path(theme_dir)
     extractor = GnomeAutoar.Extractor.new(archive_file, destination_dir)
 
-    extractor.start_async(None)
+    def resolve_conflicts(extractor):
+        # Get the directory contents after extraction
+        after = set(os.listdir(theme_dir))
+        added = after - before
 
-    # Get the directory contents after extraction
-    after = set(os.listdir(theme_dir))
-    added = after - before
+        head_folders = set()
+        for item in added:
+            item_path = os.path.join(theme_dir, item)
+            if(os.path.isdir(item_path)):
+                print(f"Extracted folder: {item_path}")
+                head_folders.add(item_path)
 
-    head_folders = set()
-    for item in added:
-        item_path = os.path.join(theme_dir, item)
-        if(os.path.isdir(item_path)):
-            print(f"Extracted folder: {item_path}")
-            head_folders.add(item_path)
+        folders = {
+            0: ["gnome-shell"],
+            2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
+            3: ["cursors", "cursors_scalable", "index.theme"]
+        }
 
-    folders = {
-        0: ["gnome-shell"],
-        2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
-        3: ["cursors", "cursors_scalable", "index.theme"]
-    }
-
-    for download_dir in head_folders:
-        if(index == 4):
-            return head_folders # Does not verify wallpapers
-        elif(index == 1):
-            icon_folders = os.listdir(download_dir)
-            added = {}
-            before = set(os.listdir(check_path)) if os.path.exists(check_path) else set()
-            if('index.theme' not in icon_folders):
-                for folder in os.listdir(download_dir): #This is all to prevent file conflicts
-                    extension = ""
-                    if('dark' in folder.lower()):
-                      extension = '-dark'
-                    elif('light' in folder.lower()):
-                      extension = '-light'
-                    parent_name = os.path.basename(download_dir).lower()
-                    correct_folder_name = folder.lower().replace(extension, '')
-                    if(parent_name in correct_folder_name):
-                        new_folder_name = correct_folder_name + extension
-                    elif(correct_folder_name in parent_name):
-                        new_folder_name = parent_name + extension
-                    else:
-                        new_folder_name = folder + '-' + str(random.getrandbits(8))
-                    os.symlink(os.path.join(download_dir, folder), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_folder_name)}")
-                for index, item in zip(range(len(added)), added):
-                    added[index] = shutil.os.path.join(theme_dir, item)
-            else:
-                os.symlink(download_dir, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(download_dir)}")
-            after = set(os.listdir(check_path))
-            added = list(after - before)
-            return list(head_folders.union(set(added)))
-        os.mkdir(download_dir + "-wardrobe_install"); new_path = download_dir + "-wardrobe_install"
-        for folder_name in folders[index]:
-            for root, dirs, files in os.walk(download_dir, topdown=False):
-                if(folder_name == "index.theme"):
-                    search = files
+        for download_dir in head_folders:
+            if(index == 4):
+                return head_folders # Does not verify wallpapers
+            elif(index == 1):
+                icon_folders = os.listdir(download_dir)
+                added = {}
+                before = set(os.listdir(check_path)) if os.path.exists(check_path) else set()
+                if('index.theme' not in icon_folders):
+                    for folder in os.listdir(download_dir): #This is all to prevent file conflicts
+                        extension = ""
+                        if('dark' in folder.lower()):
+                          extension = '-dark'
+                        elif('light' in folder.lower()):
+                          extension = '-light'
+                        parent_name = os.path.basename(download_dir).lower()
+                        correct_folder_name = folder.lower().replace(extension, '')
+                        if(parent_name in correct_folder_name):
+                            new_folder_name = correct_folder_name + extension
+                        elif(correct_folder_name in parent_name):
+                            new_folder_name = parent_name + extension
+                        else:
+                            new_folder_name = folder + '-' + str(random.getrandbits(8))
+                        os.symlink(os.path.join(download_dir, folder), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_folder_name)}")
+                    for index, item in zip(range(len(added)), added):
+                        added[index] = shutil.os.path.join(theme_dir, item)
                 else:
-                    search = dirs
-                for d in search:
-                    if(d == folder_name):
-                        found_path = os.path.join(root, d)
-                        print(f"Found {folder_name} at: {found_path}")
-                        print(f"Moving to: {new_path}")
-                        try:
-                            shutil.move(found_path, os.path.join(new_path, folder_name))
-                        except Exception:
-                            continue
-        shutil.rmtree(download_dir)
-        os.rename(new_path, new_path.replace("-wardrobe_install", ""))
-        os.symlink(new_path.replace("-wardrobe_install", ""), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_path.replace('-wardrobe_install', ''))}")
-        head_folders.add(os.path.basename(new_path.replace('-wardrobe_install', '')))
-        return head_folders
+                    os.symlink(download_dir, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(download_dir)}")
+                after = set(os.listdir(check_path))
+                added = list(after - before)
+                return list(head_folders.union(set(added)))
+            os.mkdir(download_dir + "-wardrobe_install"); new_path = download_dir + "-wardrobe_install"
+            for folder_name in folders[index]:
+                for root, dirs, files in os.walk(download_dir, topdown=False):
+                    if(folder_name == "index.theme"):
+                        search = files
+                    else:
+                        search = dirs
+                    for d in search:
+                        if(d == folder_name):
+                            found_path = os.path.join(root, d)
+                            print(f"Found {folder_name} at: {found_path}")
+                            print(f"Moving to: {new_path}")
+                            try:
+                                shutil.move(found_path, os.path.join(new_path, folder_name))
+                            except Exception:
+                                continue
+            shutil.rmtree(download_dir)
+            os.rename(new_path, new_path.replace("-wardrobe_install", ""))
+            os.symlink(new_path.replace("-wardrobe_install", ""), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_path.replace('-wardrobe_install', ''))}")
+            head_folders.add(os.path.basename(new_path.replace('-wardrobe_install', '')))
+            return head_folders
+
+    extractor.start_async()
+    extractor.connect("completed", resolve_conflicts)
 
 css = """
     .creator-title {
