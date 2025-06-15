@@ -32,7 +32,6 @@
           <object class="AdwOverlaySplitView" id="page">
             <property name="sidebar">
               <object class="AdwStatusPage">
-                <!-- <property name="title">Categories</property> -->
                 <property name="child">
                   <object class="GtkListBox" id="tab_buttons">
                     <property name="selection-mode">none</property>

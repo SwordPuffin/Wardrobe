@@ -20,12 +20,11 @@
 import os, shutil, gi, random
 
 gi.require_version('GnomeAutoar', '0.1')
-from gi.repository import GnomeAutoar, Gio, GLib
+from gi.repository import GnomeAutoar, Gio, GLib, Gdk, Gtk, GdkPixbuf
 
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
-
-def arrange_folders(archive_path, theme_dir, index):
+def arrange_folders(archive_path, theme_dir, index, save_function):
     check_path = os.path.dirname(theme_dir)
     for item in os.listdir(check_path): #removes null symlinks
         if(os.path.islink(os.path.join(check_path, item))):
@@ -36,8 +35,9 @@ def arrange_folders(archive_path, theme_dir, index):
     archive_file = Gio.File.new_for_path(archive_path)
     destination_dir = Gio.File.new_for_path(theme_dir)
     extractor = GnomeAutoar.Extractor.new(archive_file, destination_dir)
+    extractor.set_delete_after_extraction(True)
 
-    def resolve_conflicts(extractor):
+    def resolve_conflicts(extractor, before, archive_path, theme_dir, index, save_function):
         # Get the directory contents after extraction
         after = set(os.listdir(theme_dir))
         added = after - before
@@ -57,7 +57,8 @@ def arrange_folders(archive_path, theme_dir, index):
 
         for download_dir in head_folders:
             if(index == 4):
-                return head_folders # Does not verify wallpapers
+                save_function(head_folders) # Does not verify wallpapers
+                return
             elif(index == 1):
                 icon_folders = os.listdir(download_dir)
                 added = {}
@@ -84,7 +85,8 @@ def arrange_folders(archive_path, theme_dir, index):
                     os.symlink(download_dir, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(download_dir)}")
                 after = set(os.listdir(check_path))
                 added = list(after - before)
-                return list(head_folders.union(set(added)))
+                save_function(list(head_folders.union(set(added))))
+                return
             os.mkdir(download_dir + "-wardrobe_install"); new_path = download_dir + "-wardrobe_install"
             for folder_name in folders[index]:
                 for root, dirs, files in os.walk(download_dir, topdown=False):
@@ -105,12 +107,17 @@ def arrange_folders(archive_path, theme_dir, index):
             os.rename(new_path, new_path.replace("-wardrobe_install", ""))
             os.symlink(new_path.replace("-wardrobe_install", ""), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_path.replace('-wardrobe_install', ''))}")
             head_folders.add(os.path.basename(new_path.replace('-wardrobe_install', '')))
-            return head_folders
+            save_function(head_folders)
+            return
 
     extractor.start_async()
-    extractor.connect("completed", resolve_conflicts)
+    extractor.connect("completed", resolve_conflicts, before, archive_path, theme_dir, index, save_function)
 
 css = """
+    .rounded {
+      border-radius: 25px;
+      border: 0px solid;
+    }
     .creator-title {
         opacity: 0.65;
         font-size: 12pt;
@@ -124,4 +131,3 @@ css = """
         border: 0px solid;
     }
 """
-
