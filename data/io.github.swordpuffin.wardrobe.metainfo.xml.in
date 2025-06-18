@@ -43,6 +43,16 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.0" date="2025-06-18">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.0</url>
+      <description translate="no">
+        <p>Wardrobe v1.1.0</p>
+        <ul>
+          <li>Uses a proper sidebar</li>
+          <li>Themes should now always be downloaded correctly</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.9" date="2025-06-14">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.0.9</url>
       <description translate="no">

@@ -44,7 +44,7 @@ class WardrobeApplication(Adw.Application):
         about = Adw.AboutDialog(application_name='Wardrobe',
                                 application_icon='io.github.swordpuffin.wardrobe',
                                 developer_name='Nathan Perlman',
-                                version='1.0.9',
+                                version='1.1.0',
                                 developers=['Nathan Perlman'],
                                 copyright='© 2025 Nathan Perlman')
         # Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.

@@ -2,53 +2,57 @@
 <interface>
   <template class="WardrobeWindow" parent="AdwApplicationWindow">
     <property name="content">
-      <object class="AdwToolbarView">
-        <property name="top-bar-style">1</property>
-        <child type="top">
-          <object class="AdwHeaderBar">
-            <child>
-              <object class="GtkDropDown" id="menus"/>
-            </child>
-            <child>
-              <object class="GtkSpinner" id="spinner">
-                <property name="margin-start">10</property>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkBox">
+      <object class="AdwNavigationSplitView">
+        <property name="sidebar">
+          <object class="AdwNavigationPage">
+            <property name="child">
+              <object class="GtkScrolledWindow">
+                <property name="propagate-natural-height">true</property>
+                <property name="propagate-natural-width">true</property>
                 <child>
-                  <object class="GtkMenuButton">
-                    <property name="primary">True</property>
-                    <property name="icon-name">open-menu-symbolic</property>
-                    <property name="tooltip-text" translatable="yes">Menu</property>
-                    <property name="menu-model">primary_menu</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <property name="content">
-          <object class="AdwOverlaySplitView" id="page">
-            <property name="sidebar">
-              <object class="AdwStatusPage">
-                <property name="child">
                   <object class="GtkListBox" id="tab_buttons">
                     <property name="selection-mode">none</property>
                     <style>
                       <class name="boxed-list"/>
                     </style>
                   </object>
-                </property>
+                </child>
               </object>
             </property>
-            <property name="content">
-              <object class="AdwStatusPage">
-                <child>
-                  <object class="GtkBox">
-                    <property name="orientation">1</property>
-                    <property name="valign">3</property>
-                    <property name="spacing">18</property>
+          </object>
+        </property>
+        <property name="content">
+          <object class="AdwNavigationPage">
+            <property name="child">
+              <object class="AdwToolbarView">
+                <property name="top-bar-style">0</property>
+                <property name="content">
+                  <object class="GtkBox" id="page">
+                  </object>
+                </property>
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <property name="show-title">false</property>
+                    <child>
+                      <object class="GtkDropDown" id="menus"/>
+                    </child>
+                    <child>
+                      <object class="GtkSpinner" id="spinner">
+                        <property name="margin-start">10</property>
+                      </object>
+                    </child>
+                    <child type="end">
+                      <object class="GtkBox">
+                        <child>
+                          <object class="GtkMenuButton">
+                            <property name="primary">True</property>
+                            <property name="icon-name">open-menu-symbolic</property>
+                            <property name="tooltip-text" translatable="yes">Menu</property>
+                            <property name="menu-model">primary_menu</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

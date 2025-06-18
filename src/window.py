@@ -92,9 +92,8 @@ class WardrobeWindow(Adw.ApplicationWindow):
         )
 
         self.set_default_size(800, 600)
-        self.set_title("")
         icons = ["shell-symbolic", "app-symbolic", "interface-symbolic", "cursor-symbolic", "wallpaper-symbolic", "search-symbolic"]
-        for i, label in zip(range(6), ["Shell", "Icon", "Interface", "Cursor", "Wallpaper", "Search"]):
+        for i, label in zip(range(6), ["GNOME Shell", "Full Icon", "Interface (Gtk3/4)", "Cursor", "Wallpaper", "Search"]):
             row = Adw.ActionRow(title=label, height_request=65, activatable=True)
             icon = Gtk.Image(pixel_size=22).new_from_icon_name(icons[i])
             if(i == 0):
@@ -188,7 +187,9 @@ class WardrobeWindow(Adw.ApplicationWindow):
             theme_grid = Gtk.FlowBox(row_spacing=12, max_children_per_line=5, selection_mode=Gtk.SelectionMode.NONE)
             self.category_box.append(theme_grid)
             scrollbox = Gtk.ScrolledWindow(vexpand=True, child=self.category_box)
-            self.page.set_content(scrollbox)
+            if(self.page.get_first_child() is not None):
+                self.page.remove(self.page.get_first_child())
+            self.page.append(scrollbox)
 
         root = ET.fromstring(response)
         if(int(root.findall(".//meta")[0].find("itemsperpage").text) == 0):
@@ -408,19 +409,19 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
         file_path = shutil.os.path.join(folder_path, name)
 
-        def save_download(head_folders):
+        def save_download(head_folders, installed_folders):
             self.downloaded[name] = list(head_folders)
             writer = open(f"{self.folders[5]}/downloaded.txt", "w")
             writer.write(f"{self.downloaded}")
             writer.close()
-            self.update_button_to_delete(button, name, link, index, list(head_folders))
+            self.update_button_to_delete(button, name, link, index, installed_folders)
 
         def download_and_extract_file(response):
             with open(file_path, 'wb') as file:
                 file.write(response)
             print(f'File downloaded successfully to {file_path}')
             if(any(ext in file_path for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"])):
-                save_download([file_path])
+                save_download([file_path], [file_path])
             else:
                 arrange_folders(file_path, folder_path, index, save_download)
 
@@ -440,7 +441,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     def set_theme(self, button, index, installed_folders):
         interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
-        installed_folders.sort()
         print(installed_folders)
         match(index):
             case(0):
@@ -448,16 +448,16 @@ class WardrobeWindow(Adw.ApplicationWindow):
                 # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
                 # shell_settings.set_string("name", shutil.os.path.basename(installed_folders[0]))
             case(1):
-                interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[1]))
+                interface_settings.set_string("icon-theme", shutil.os.path.basename(installed_folders[0]))
             case(2):
-                interface_settings.set_string("gtk-theme", shutil.os.path.basename(installed_folders[1]))
+                interface_settings.set_string("gtk-theme", shutil.os.path.basename(installed_folders[0]))
             case(3):
-                interface_settings.set_string("cursor-theme", shutil.os.path.basename(installed_folders[1]))
+                interface_settings.set_string("cursor-theme", shutil.os.path.basename(installed_folders[0]))
             case(4):
                 if(shutil.os.path.isdir(installed_folders[0])):
                     for root, dirs, files in shutil.os.walk(installed_folders[0]):
                         for file in files:
-                            if(any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif"])):
+                            if(any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".jxl"])):
                                 image = shutil.os.path.join(root, file)
                 else:
                     image = installed_folders[0]
@@ -479,7 +479,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
                     shutil.rmtree(path)
                 else:
                     shutil.os.remove(path)
-            except FileNotFoundError:
+            except:
                 continue
         writer = open(f"{self.folders[5]}/downloaded.txt", "w")
         self.downloaded.pop(name)

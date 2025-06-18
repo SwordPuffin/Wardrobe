@@ -38,77 +38,69 @@ def arrange_folders(archive_path, theme_dir, index, save_function):
     extractor.set_delete_after_extraction(True)
 
     def resolve_conflicts(extractor, before, archive_path, theme_dir, index, save_function):
-        # Get the directory contents after extraction
-        after = set(os.listdir(theme_dir))
-        added = after - before
+        folders = {
+            0: ["gnome-shell"],
+            1: ["index.theme"],
+            2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
+            3: ["cursors", "cursors_scalable", "index.theme"]
+        }
 
+        after = set(os.listdir(theme_dir))
+        added = list(after - before)
         head_folders = set()
+
         for item in added:
             item_path = os.path.join(theme_dir, item)
             if(os.path.isdir(item_path)):
                 print(f"Extracted folder: {item_path}")
                 head_folders.add(item_path)
 
-        folders = {
-            0: ["gnome-shell"],
-            2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
-            3: ["cursors", "cursors_scalable", "index.theme"]
-        }
-
+        if(index == 4):
+            save_function(list(head_folders), list(head_folders))
+            return
+        important_paths = set()
+        before = set(os.listdir(check_path)) if os.path.exists(check_path) else set()
         for download_dir in head_folders:
-            if(index == 4):
-                save_function(head_folders) # Does not verify wallpapers
-                return
-            elif(index == 1):
-                icon_folders = os.listdir(download_dir)
-                added = {}
-                before = set(os.listdir(check_path)) if os.path.exists(check_path) else set()
-                if('index.theme' not in icon_folders):
-                    for folder in os.listdir(download_dir): #This is all to prevent file conflicts
-                        extension = ""
-                        if('dark' in folder.lower()):
-                          extension = '-dark'
-                        elif('light' in folder.lower()):
-                          extension = '-light'
-                        parent_name = os.path.basename(download_dir).lower()
-                        correct_folder_name = folder.lower().replace(extension, '')
-                        if(parent_name in correct_folder_name):
-                            new_folder_name = correct_folder_name + extension
-                        elif(correct_folder_name in parent_name):
-                            new_folder_name = parent_name + extension
-                        else:
-                            new_folder_name = folder + '-' + str(random.getrandbits(8))
-                        os.symlink(os.path.join(download_dir, folder), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_folder_name)}")
-                    for index, item in zip(range(len(added)), added):
-                        added[index] = shutil.os.path.join(theme_dir, item)
-                else:
-                    os.symlink(download_dir, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(download_dir)}")
-                after = set(os.listdir(check_path))
-                added = list(after - before)
-                save_function(list(head_folders.union(set(added))))
-                return
-            os.mkdir(download_dir + "-wardrobe_install"); new_path = download_dir + "-wardrobe_install"
-            for folder_name in folders[index]:
-                for root, dirs, files in os.walk(download_dir, topdown=False):
+            for root, dirs, files in os.walk(download_dir, topdown=False):
+                for folder_name in folders[index]:
                     if(folder_name == "index.theme"):
                         search = files
                     else:
                         search = dirs
-                    for d in search:
-                        if(d == folder_name):
-                            found_path = os.path.join(root, d)
-                            print(f"Found {folder_name} at: {found_path}")
-                            print(f"Moving to: {new_path}")
-                            try:
-                                shutil.move(found_path, os.path.join(new_path, folder_name))
-                            except Exception:
-                                continue
-            shutil.rmtree(download_dir)
-            os.rename(new_path, new_path.replace("-wardrobe_install", ""))
-            os.symlink(new_path.replace("-wardrobe_install", ""), f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_path.replace('-wardrobe_install', ''))}")
-            head_folders.add(os.path.basename(new_path.replace('-wardrobe_install', '')))
-            save_function(head_folders)
-            return
+                    for item in search:
+                        if(item == folder_name):
+                            print("Found: " + item)
+                            important_paths.add(os.path.dirname(os.path.join(root, item)))
+        print(important_paths)
+        if(index == 0 or index == 2 or index == 3):
+            for path in important_paths:
+                try:
+                    os.symlink(path, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(path)}")
+                except:
+                    continue
+        elif(index == 1):
+            for path in important_paths:
+                extension = ""
+                folder = os.path.basename(path)
+                if('dark' in folder.lower()):
+                  extension = '-dark'
+                elif('light' in folder.lower()):
+                  extension = '-light'
+                parent_name = os.path.basename(os.path.dirname(path)).lower()
+                correct_folder_name = folder.lower().replace(extension, '')
+                if(parent_name in correct_folder_name):
+                    new_folder_name = correct_folder_name + extension
+                elif(correct_folder_name in parent_name):
+                    new_folder_name = parent_name + extension
+                else:
+                    new_folder_name = folder + '-' + str(random.getrandbits(8))
+                os.symlink(path, f"{os.path.dirname(theme_dir)}/" + f"{os.path.basename(new_folder_name)}")
+        after = set(os.listdir(check_path))
+        added = list(after - before)
+        for pos, item in zip(range(len(added)), added):
+            added[pos] = shutil.os.path.join(check_path, item)
+
+        save_function(list(head_folders), added)
 
     extractor.start_async()
     extractor.connect("completed", resolve_conflicts, before, archive_path, theme_dir, index, save_function)
