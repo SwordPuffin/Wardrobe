@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
             folders = output.stdout.strip().split(os.pathsep)
             if(folders == None):
-            	folders = ['/app/share', '/usr/share', 'usr/share/runtime/share', '/run/host/user-share', '/run/host/share']
+            	folders = ['/app/share', '/usr/share', '/usr/share/runtime/share', '/run/host/user-share', '/run/host/share']
 
             host_xdg_data_dirs = map(Path, folders)
             dconf_bridge_path = Path(GLib.get_user_runtime_dir(), "dconf-bridge")

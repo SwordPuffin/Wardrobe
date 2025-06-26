@@ -5,7 +5,7 @@
   <project_license>GPL-3.0-or-later</project_license>
 
   <name>Wardrobe</name>
-  <summary>Install and activate desktop themes effortlessly</summary>
+  <summary>Prettify your desktop effortlessly</summary>
   <description>
     <p>Wardrobe is a utility for downloading community made Gnome Shell, Gtk3/4, icon, and cursor themes as well as wallpapers</p>
     <p>**This app has only been tested on the GNOME desktop, so do not expect it to fully work in Cinnamon, Xfce, etc.**</p>
@@ -24,8 +24,8 @@
   <content_rating type="oars-1.1" />
 
   <branding>
-    <color type="primary" scheme_preference="light">#cfc0f0</color>
-    <color type="primary" scheme_preference="dark">#24273a</color>
+    <color type="primary" scheme_preference="light">#cdab8f</color>
+    <color type="primary" scheme_preference="dark">#865e3c</color>
   </branding>
 
   <screenshots>
@@ -34,7 +34,7 @@
       <image>https://raw.githubusercontent.com/SwordPuffin/Wardrobe/main/data/screenshots/Screenshot1.png</image>
     </screenshot>
     <screenshot>
-      <caption>A view of themes in the grid</caption>
+      <caption>Searching for a specific theme</caption>
       <image>https://raw.githubusercontent.com/SwordPuffin/Wardrobe/main/data/screenshots/Screenshot2.png</image>
     </screenshot>
     <screenshot>
@@ -43,6 +43,18 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.1" date="2025-06-26">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.1</url>
+      <description translate="no">
+        <p>Wardrobe v1.1.1</p>
+        <ul>
+          <li>Better sidebar interface</li>
+          <li>Cleaner app icon</li>
+          <li>Thumbnail images can now bo zoomed in on when clicked</li>
+          <li>Minor UI tweaks in the individual theme cells</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.0" date="2025-06-18">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.0</url>
       <description translate="no">

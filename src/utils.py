@@ -22,6 +22,19 @@ import os, shutil, gi, random
 gi.require_version('GnomeAutoar', '0.1')
 from gi.repository import GnomeAutoar, Gio, GLib, Gdk, Gtk, GdkPixbuf
 
+def search_for_images(folders):
+    return_val = []
+    for folder in folders:
+        if(shutil.os.path.isdir(folder)):
+            for root, dirs, files in shutil.os.walk(folder):
+                for file in files:
+                    if(any(ext in file for ext in [".png", ".jpg", ".svg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".jxl"])):
+                        print(shutil.os.path.join(root, file))
+                        return_val.append(shutil.os.path.join(root, file))
+        else:
+            return_val.append(folder)
+    return return_val
+
 #Some theme developers do not package the folders in their theme in the correct order
 #arrange_folders moves everything into the right order
 def arrange_folders(archive_path, theme_dir, index, save_function):
@@ -56,7 +69,7 @@ def arrange_folders(archive_path, theme_dir, index, save_function):
                 head_folders.add(item_path)
 
         if(index == 4):
-            save_function(list(head_folders), list(head_folders))
+            save_function(list(head_folders), search_for_images(list(head_folders)))
             return
         important_paths = set()
         before = set(os.listdir(check_path)) if os.path.exists(check_path) else set()

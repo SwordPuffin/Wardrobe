@@ -25,6 +25,7 @@ actions_icons = [
   actions_dir / 'user-trash-symbolic.svg',
   actions_dir / 'arrow-left-symbolic.svg',
   actions_dir / 'arrow-right-symbolic.svg',
+  actions_dir / 'zoom-in-symbolic.svg',
 ]
 
 install_data(

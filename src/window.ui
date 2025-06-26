@@ -6,15 +6,44 @@
         <property name="sidebar">
           <object class="AdwNavigationPage">
             <property name="child">
-              <object class="GtkScrolledWindow">
-                <property name="propagate-natural-height">true</property>
-                <property name="propagate-natural-width">true</property>
+              <object class="GtkBox">
+                <property name="margin-top">20</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
                 <child>
-                  <object class="GtkListBox" id="tab_buttons">
-                    <property name="selection-mode">none</property>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Categories</property>
                     <style>
-                      <class name="boxed-list"/>
+                      <class name="title-4"/>
                     </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="propagate-natural-height">true</property>
+                    <property name="propagate-natural-width">true</property>
+                    <child>
+                      <object class="GtkListBox" id="tab_buttons">
+                        <style>
+                          <class name="navigation-sidebar"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="search_box">
+                    <property name="orientation">vertical</property>
+                    <property name="margin-top">10</property>
+                    <property name="spacing">10</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Search</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
