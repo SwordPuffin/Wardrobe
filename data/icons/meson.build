@@ -26,6 +26,7 @@ actions_icons = [
   actions_dir / 'arrow-left-symbolic.svg',
   actions_dir / 'arrow-right-symbolic.svg',
   actions_dir / 'zoom-in-symbolic.svg',
+  actions_dir / 'web-browser-symbolic.svg'
 ]
 
 install_data(

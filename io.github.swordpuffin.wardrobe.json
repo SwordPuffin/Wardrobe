@@ -82,7 +82,7 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/SwordPuffin/Wardrobe.git",
-                    "tag" : "v1.1.1"
+                    "tag" : "v1.1.2"
                 }
             ]
         }

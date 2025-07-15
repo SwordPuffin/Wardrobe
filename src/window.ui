@@ -1,51 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="WardrobeWindow" parent="AdwApplicationWindow">
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 400sp</condition>
+        <setter object="split_view" property="collapsed">true</setter>
+      </object>
+    </child>
     <property name="content">
-      <object class="AdwNavigationSplitView">
+      <object class="AdwNavigationSplitView" id="split_view">
         <property name="sidebar">
           <object class="AdwNavigationPage">
             <property name="child">
-              <object class="GtkBox">
-                <property name="margin-top">20</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">10</property>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="yes">Categories</property>
-                    <style>
-                      <class name="title-4"/>
-                    </style>
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <property name="show-title">true</property>
                   </object>
                 </child>
-                <child>
-                  <object class="GtkScrolledWindow">
-                    <property name="propagate-natural-height">true</property>
-                    <property name="propagate-natural-width">true</property>
-                    <child>
-                      <object class="GtkListBox" id="tab_buttons">
-                        <style>
-                          <class name="navigation-sidebar"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkBox" id="search_box">
+                <property name="content">
+                  <object class="GtkBox">
+                    <property name="margin-top">20</property>
                     <property name="orientation">vertical</property>
-                    <property name="margin-top">10</property>
                     <property name="spacing">10</property>
+                    <style>
+                      <class name="sidebar"/>
+                    </style>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Search</property>
-                        <style>
-                          <class name="title-4"/>
-                        </style>
+                      <object class="GtkScrolledWindow">
+                        <property name="propagate-natural-height">true</property>
+                        <property name="propagate-natural-width">true</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkDropDown" id="menus">
+                                <style>
+                                  <class name="dropdown"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBox" id="tab_buttons">
+                                <style>
+                                  <class name="navigation-sidebar"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="search_box">
+                        <property name="orientation">vertical</property>
+                        <property name="margin-top">10</property>
+                        <property name="spacing">10</property>
                       </object>
                     </child>
                   </object>
-                </child>
+                </property>
               </object>
             </property>
           </object>
@@ -62,9 +76,6 @@
                 <child type="top">
                   <object class="AdwHeaderBar">
                     <property name="show-title">false</property>
-                    <child>
-                      <object class="GtkDropDown" id="menus"/>
-                    </child>
                     <child>
                       <object class="GtkSpinner" id="spinner">
                         <property name="margin-start">10</property>

@@ -120,7 +120,7 @@ def arrange_folders(archive_path, theme_dir, index, save_function):
 
 css = """
     .rounded {
-      border-radius: 25px;
+      border-radius: 15px;
       border: 0px solid;
     }
     .creator-title {
@@ -132,7 +132,28 @@ css = """
         background-color: var(--green-1);
         color: var(--dark-5);
     }
+    .blur {
+        filter: blur(12px);
+    }
     .card {
         border: 0px solid;
+    }
+    .extra-padding {
+        padding: 5px 15px;
+        border: 0px solid;
+        background-color: var(--card-bg-color);
+    }
+    .dropdown {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+    .sidebar {
+        min-width: 200px;
+    }
+    .dark {
+        filter: brightness(75%);
+    }
+    .background-dark {
+        filter: brightness(75%) blur(14px);
     }
 """

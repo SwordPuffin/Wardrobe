@@ -43,6 +43,16 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.2" date="2025-07-15">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.2</url>
+      <description translate="no">
+        <p>Wardrobe v1.1.2</p>
+        <ul>
+          <li>UI changes</li>
+          <li>Supports autoscroll</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.1" date="2025-06-26">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.1</url>
       <description translate="no">
