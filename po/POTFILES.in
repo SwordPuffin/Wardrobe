@@ -6,3 +6,4 @@ data/io.github.swordpuffin.wardrobe.gschema.xml
 src/main.py
 src/window.py
 src/window.ui
+src/utils.py
