@@ -70,23 +70,27 @@ msgstr ""
 msgid "translator-credits"
 msgstr ""
 
-#: src/window.py:101
+#: src/window.py:102
 msgid "GNOME Shell"
 msgstr ""
 
-#: src/window.py:101
+#: src/window.py:102
 msgid "Icon"
 msgstr ""
 
-#: src/window.py:101
+#: src/window.py:102
 msgid "Interface"
 msgstr ""
 
-#: src/window.py:101
+#: src/window.py:102
 msgid "Cursor"
 msgstr ""
 
-#: src/window.py:189 src/window.py:101
+#: src/window.py:102
+msgid "Search"
+msgstr ""
+
+#: src/window.py:102 src/window.py:189
 msgid "Wallpaper"
 msgstr ""
 
