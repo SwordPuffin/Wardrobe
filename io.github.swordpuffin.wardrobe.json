@@ -1,7 +1,7 @@
 {
     "id" : "io.github.swordpuffin.wardrobe",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "47",
+    "runtime-version" : "49",
     "sdk" : "org.gnome.Sdk",
     "command" : "wardrobe",
     "finish-args" : [
@@ -82,7 +82,7 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/SwordPuffin/Wardrobe.git",
-                    "tag" : "v1.1.2"
+                    "tag" : "v1.1.3"
                 }
             ]
         }
