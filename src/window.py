@@ -78,11 +78,11 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     current_page = 0
     categories = [
-        {"name": "Shell Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode="},
-        {"name": "Icon Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=386&sortmode="},
-        {"name": "Gtk3/4 Themes", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=366&sortmode="},
-        {"name": "Cursors", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=107&sortmode="},
-        {"name": "Wallpapers", "url": "https://www.opendesktop.org/ocs/v1/content/data/?categories=261&sortmode="}
+        {"name": "Shell Themes", "url": "https://api.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode="},
+        {"name": "Icon Themes", "url": "https://api.opendesktop.org/ocs/v1/content/data/?categories=386&sortmode="},
+        {"name": "Gtk3/4 Themes", "url": "https://api.opendesktop.org/ocs/v1/content/data/?categories=366&sortmode="},
+        {"name": "Cursors", "url": "https://api.opendesktop.org/ocs/v1/content/data/?categories=107&sortmode="},
+        {"name": "Wallpapers", "url": "https://api.opendesktop.org/ocs/v1/content/data/?categories=261&sortmode="}
     ]
     # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
     # print(shell_settings.get_string("name"))
@@ -147,7 +147,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             self.menus.set_sensitive(False)
             print(f"Search for: {self.query}")
             self.current_page = 0
-            self.search_url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&pagesize={self.cell_count}&categories=134x386x366x107x261"
+            self.search_url = f"https://api.opendesktop.org/ocs/v1/content/data/?search={self.query}&page=0&pagesize={self.cell_count}&categories=134x386x366x107x261"
             self.on_tab_changed(search_entry)
 
     def fetch_themes(self, index, page, action):
@@ -252,7 +252,7 @@ class WardrobeWindow(Adw.ApplicationWindow):
             if(int(self.activated.get_name()) != 5):
                 self.fetch_themes(int(self.activated.get_name()), self.current_page, "_")
             else:
-                url = f"https://www.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&pagesize={self.cell_count}&categories=134x386x366x107x261"
+                url = f"https://api.opendesktop.org/ocs/v1/content/data/?search={self.query}&page={self.current_page}&pagesize={self.cell_count}&categories=134x386x366x107x261"
                 self.grab_theme_params(url)
             GLib.idle_add(self.scroll_to_original_pos, self.category_box.get_parent().get_parent(), vadj.get_value()) #For vertical position in scrolled window to not reset
 
@@ -584,4 +584,3 @@ class WardrobeWindow(Adw.ApplicationWindow):
 
     def on_view_button_clicked(self, button, theme_url):
         webbrowser.open(theme_url)
-
