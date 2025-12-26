@@ -1,5 +1,3 @@
-# Currently, Wardrobe is non-functional due to changes in the opendesktop api. This is being worked on right now, and a fix will be released as soon as possible.
-
 # 🎨 Wardrobe
 
 **Wardrobe** is a utility for installing community-made **Gnome Shell**, **GTK3/4**, **icon**, and **cursor** themes as well as wallpapers.
