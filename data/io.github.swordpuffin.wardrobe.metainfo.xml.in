@@ -49,6 +49,7 @@
         <p>Wardrobe v1.1.4</p>
         <ul>
           <li>Fixed loading issue with deprecated opendesktop api</li>
+          <li>Added Vietnamese translations, thanks to @hthienloc</li>
         </ul>
       </description>
     </release>
