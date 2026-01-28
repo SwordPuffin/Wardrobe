@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="wardrobe">
+	<schema id="io.github.swordpuffin.wardrobe" path="/io/github/swordpuffin/wardrobe/">
+	  <key name="installed-themes" type="a{ss}">
+	    <default>{}</default>
+	    <summary>Name and path for installed themes</summary>
+	  </key>
+	</schema>
+</schemalist>

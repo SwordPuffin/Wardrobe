@@ -1,0 +1,90 @@
+{
+    "id" : "io.github.swordpuffin.wardrobe",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "49",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "wardrobe",
+    "finish-args" : [
+        "--share=ipc",
+        "--share=network",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--device=dri",
+	"--filesystem=home",
+	"--talk-name=ca.desrt.dconf",
+        "--env=GIO_EXTRA_MODULES=/app/lib/gio/modules/"
+    ],
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/doc",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        {
+            "name": "dconf",
+            "buildsystem": "meson",
+            "config-opts": [
+                "-Dbash_completion=false",
+                "-Dman=false"
+            ],
+            "cleanup": [
+                "/include",
+                "/lib/pkgconfig",
+                "/libexec",
+                "/share/dbus-1"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.gnome.org/sources/dconf/0.40/dconf-0.40.0.tar.xz",
+                    "sha256": "cf7f22a4c9200421d8d3325c5c1b8b93a36843650c9f95d6451e20f0bcb24533"
+                },
+                {
+                    "type": "patch",
+                    "path": "dconf-override.patch"
+                }
+            ]
+        },
+        {
+	      "name": "libportal",
+	      "buildsystem": "meson",
+	      "sources": [
+		{
+		  "type": "git",
+		  "url": "https://github.com/flatpak/libportal.git",
+		  "tag": "0.9.1"
+		}
+	      ]
+	},
+	{
+	    "name": "gnome-autoar",
+	    "buildsystem": "meson",
+	    "builddir": true,
+	    "sources": [
+		{
+		  "type": "git",
+		  "url": "https://gitlab.gnome.org/GNOME/gnome-autoar.git",
+		  "tag": "0.4.5"
+		}
+	    ]
+	},
+        {
+            "name" : "wardrobe",
+            "builddir" : true,
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/SwordPuffin/Wardrobe.git",
+                    "tag" : "v1.1.4"
+                }
+            ]
+        }
+    ]
+}

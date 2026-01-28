@@ -1,0 +1,54 @@
+.shell-symbolic {
+    background-color: #8B5CF6;
+    color: white;
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+}
+
+.icon-symbolic {
+    background-color: #F59E0B;
+    color: white;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.cursor-symbolic {
+    background-color: #3B82F6;
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.interface-symbolic {
+    background-color: #10B981;
+    color: white;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.search-symbolic {
+    background-color: #6366F1;
+    color: white;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+}
+
+.wallpaper-symbolic {
+    background-color: #EC4899;
+    color: white;
+    box-shadow: 0 2px 4px rgba(236, 72, 153, 0.3);
+}
+
+.blur {
+  filter: blur(6px);
+}
+
+.info-row {
+    padding: 6px;
+}
+
+.info-separator {
+    margin: 6px 12px;
+    opacity: 0.3;
+}
+
+.dim-label {
+    opacity: 0.6;
+    font-size: smaller;
+}
+
