@@ -1,31 +1,42 @@
 .shell-symbolic {
-    background-color: #8B5CF6;
-    color: white;
-    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+  background-image: linear-gradient(
+    135deg,
+    #ffc931,
+    #fd4932
+  );
 }
 
 .icon-symbolic {
-    background-color: #F59E0B;
-    color: white;
-    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+  background-color: #2c5aa0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 12px 12px;
+  color: #e8d9a8;
 }
 
 .cursor-symbolic {
-    background-color: #3B82F6;
-    color: white;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  background-image: linear-gradient(
+    135deg,
+    #e6b980,
+    #7f3fbf
+  );
 }
 
 .interface-symbolic {
-    background-color: #10B981;
-    color: white;
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+  background-image: linear-gradient(
+    135deg,
+    #d63384,
+    #ff6b6b
+  );
 }
 
 .search-symbolic {
-    background-color: #6366F1;
-    color: white;
-    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+  background-image: linear-gradient(
+    135deg,
+    #2ecc71,
+    #1e8449
+  );
 }
 
 .wallpaper-symbolic {
@@ -47,8 +58,19 @@
     opacity: 0.3;
 }
 
+.rounded {
+  border-radius: 12px;
+}
+
 .dim-label {
     opacity: 0.6;
     font-size: smaller;
 }
 
+.description-label {
+  font-size: 15px;
+}
+
+.bold {
+  font-weight: bold;
+}

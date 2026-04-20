@@ -3,11 +3,11 @@ from gi.repository import Gtk, Adw
 from .theme_cell_flowbox import ThemeCellFlowbox
 
 categories = {
-    "GNOME Shell": "https://api.opendesktop.org/ocs/v1/content/data/?categories=134&sortmode=",
-    "Icons": "https://api.opendesktop.org/ocs/v1/content/data/?categories=386&sortmode=",
-    "GTK3/4": "https://api.opendesktop.org/ocs/v1/content/data/?categories=366&sortmode=",
-    "Cursors": "https://api.opendesktop.org/ocs/v1/content/data/?categories=107&sortmode=",
-    "Wallpapers": "https://api.opendesktop.org/ocs/v1/content/data/?categories=261&sortmode="
+    "GNOME Shell": "https://api.opendesktop.org/ocs/v1/content/data/?format=json&categories=134&sortmode=",
+    "Icons": "https://api.opendesktop.org/ocs/v1/content/data/?format=json&categories=386&sortmode=",
+    "GTK3/4": "https://api.opendesktop.org/ocs/v1/content/data/?format=json&categories=366&sortmode=",
+    "Cursors": "https://api.opendesktop.org/ocs/v1/content/data/?format=json&categories=107&sortmode=",
+    "Wallpapers": "https://api.opendesktop.org/ocs/v1/content/data/?format=json&categories=261&sortmode="
 }
 
 class ThemePage(Adw.NavigationPage):
@@ -26,11 +26,11 @@ class ThemePage(Adw.NavigationPage):
 
         self.theme_flowbox = ThemeCellFlowbox()
         self.theme_flowbox.page = view
-        next_button = Gtk.Button(label=_("Next Page"), hexpand=True, halign=Gtk.Align.CENTER, width_request=350, margin_top=24, margin_bottom=24)
-        next_button.connect("clicked", self.next_page)
+        self.next_button = Gtk.Button(label=_("Next Page"), hexpand=True, halign=Gtk.Align.CENTER, width_request=350, margin_top=24, margin_bottom=24, visible=False)
+        self.next_button.connect("clicked", self.next_page)
         theme_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         theme_box.append(self.theme_flowbox)
-        theme_box.append(next_button)
+        theme_box.append(self.next_button)
         scroller = Gtk.ScrolledWindow(child=theme_box, hexpand=True, vexpand=True)
         content_box.append(scroller)
         self.set_child(content_box)
@@ -47,6 +47,7 @@ class ThemePage(Adw.NavigationPage):
             self.current_page = 0
             self.theme_flowbox.remove_all()
         self.theme_flowbox.build_cells(url)
+        self.next_button.set_visible(True)
 
     def on_type_changed(self, group, button):
         label = group.get_active_name()

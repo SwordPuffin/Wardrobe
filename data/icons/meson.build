@@ -25,7 +25,8 @@ actions_icons = [
   actions_dir / 'delete-symbolic.svg',
   actions_dir / 'left-symbolic.svg',
   actions_dir / 'folder-open-symbolic.svg',
-  actions_dir / 'external-link-symbolic.svg'
+  actions_dir / 'external-link-symbolic.svg',
+  actions_dir / 'web-symbolic.svg',
 ]
 
 install_data(

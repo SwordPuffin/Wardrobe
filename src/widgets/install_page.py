@@ -1,17 +1,20 @@
 import gi, os, shutil, webbrowser, json
+from html.parser import HTMLParser
 gi.require_version('WebKit', '6.0')
-from gi.repository import Gtk, Gdk, Adw, Gio, GLib, WebKit, Soup
-from .utils import match_theme_type, soup_get, resolve_issues
+gi.require_version('Xdp', '1.0')
+gi.require_version('XdpGtk4', '1.0')
+from gi.repository import Gtk, Gdk, Adw, Gio, GLib, WebKit, Soup, Xdp, XdpGtk4
+from .utils import match_theme_type, soup_get, resolve_issues, strip_html
 from datetime import datetime, timezone
 
-data_dir = os.path.join(GLib.getenv("HOME"), ".local", "share") #Should be ~/.local/share
+data_home = os.path.join(GLib.getenv("HOME"), '.local', 'share')
 picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) #Typically ~/Pictures
 
 folders = {
-    0: f"{data_dir}/themes/wardrobe-installs",
-    1: f"{data_dir}/icons/wardrobe-installs",
-    2: f"{data_dir}/themes/wardrobe-installs",
-    3: f"{data_dir}/icons/wardrobe-installs",
+    0: f"{os.path.join(data_home, 'themes', 'wardrobe-installs')}",
+    1: f"{os.path.join(data_home, 'icons', 'wardrobe-installs')}",
+    2: f"{os.path.join(data_home, 'themes', 'wardrobe-installs')}",
+    3: f"{os.path.join(data_home, 'icons', 'wardrobe-installs')}",
     4: f"{picture_dir}/",
     5: f"{GLib.get_user_data_dir()}"
 }
@@ -27,14 +30,9 @@ def get_installed_themes():
             json.dump(dict(), f, indent=2)
             return dict()
 
-def get_theme_path(key):
+def add_theme(name, delete_paths, theme_paths):
     data = get_installed_themes()
-    return data[key]
-
-def add_theme(name, paths):
-    data = get_installed_themes()
-    data[name] = list(paths)
-    print("Data: " + str(data))
+    data[name] = (list(delete_paths), list(theme_paths))
     with open(json_path, "w") as f:
         json.dump(data, f, indent=2)
 
@@ -66,24 +64,37 @@ class InstallPage(Adw.NavigationPage):
         self.theme_type = match_theme_type(theme_button.theme_type)
         self.set_tag("install_page")
 
-        title = Gtk.Label(label=theme_button.title, wrap=True)
+        top_box = Gtk.Box(hexpand=True, halign=Gtk.Align.CENTER, spacing=150)
+        title_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=12, spacing=8)
+        title = Gtk.Label(margin_start=24, label=theme_button.title, wrap=True, halign=Gtk.Align.START)
         title.add_css_class("title-1")
-        content_box.append(title)
+        dev_label = Gtk.Label(margin_start=24, label=_("By: ") + theme_button.dev, halign=Gtk.Align.START)
+        dev_label.set_css_classes(["title-4", "dimmed"])
+        web_button = Gtk.Button(icon_name="web-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER, margin_end=24)
+        web_button.set_size_request(45, 45)
+        web_button.set_css_classes(["circular", "suggested-action"])
+        web_button.connect("clicked", lambda x: webbrowser.open(theme_button.home_page))
+
+        title_box.append(title)
+        title_box.append(dev_label)
+        top_box.append(title_box)
+        top_box.append(web_button)
+        content_box.append(top_box)
 
         info_box = Gtk.FlowBox(
             hexpand=True,
-            margin_start=12,
-            margin_end=12,
+            margin_start=6,
+            margin_end=6,
             selection_mode=Gtk.SelectionMode.NONE,
             can_target=False,
-            max_children_per_line=2,
-            row_spacing=12
+            max_children_per_line=3,
+            min_children_per_line=3,
+            homogeneous=True
         )
 
-        info_box.add_css_class("info-row")
+        info_box.set_css_classes(["view", "rounded"])
         content_box.append(Adw.Clamp(child=info_box, maximum_size=750))
 
-        dev = theme_button.dev
         download = theme_button.downloads
         score = f"{theme_button.rating}/10 ★"
         changed = datetime.fromisoformat(theme_button.last_update).strftime("%b %d, %Y")
@@ -93,7 +104,6 @@ class InstallPage(Adw.NavigationPage):
         days_since = delta.days
 
         items = [
-            ("Creator", dev),
             ("Downloads", download),
             ("Rating", score),
             ("Last updated", changed),
@@ -112,9 +122,8 @@ class InstallPage(Adw.NavigationPage):
             part.append(tag_label)
 
             top_level = Gtk.Button(child=part)
-            if(tag == "Creator"):
-                top_level.add_css_class("accent")
-            elif(tag == "Downloads" and int(theme_button.downloads) < 1000):
+            top_level.add_css_class("frame")
+            if(tag == "Downloads" and int(theme_button.downloads) < 1000):
                 top_level.add_css_class("destructive-action")
             elif(tag == "Downloads" and int(theme_button.downloads) >= 1000):
                 top_level.add_css_class("success")
@@ -177,12 +186,9 @@ class InstallPage(Adw.NavigationPage):
 
         make_break("Description", content_box)
 
-        description_box = WebKit.WebView(height_request=250)
-        description_box.get_settings().set_enable_javascript(False)
-        description_box.connect("decide-policy", self.on_decide_policy)
-        # description += f"\n\n<style>html, body {{background-color: {get_default_colors(content_box)[0]}; color: {get_default_colors(content_box)[1]};}}</style>"
-        description_box.load_html(description)
-        content_box.append(Gtk.Frame(child=description_box, margin_start=24, margin_end=24))
+        description_label = Gtk.Label(label=strip_html(description), wrap=True, selectable=True)
+        description_label.set_css_classes(["description-label", "view"])
+        content_box.append(description_label)
 
         make_break("Download/Delete Theme", content_box)
 
@@ -204,36 +210,27 @@ class InstallPage(Adw.NavigationPage):
         download_list.append(link_row)
         installed = get_installed_themes()
         for name, link in zip(names, links):
-            if('.' not in name):
-                continue
             row = Adw.ActionRow(title=name)
+            suffix_box = Gtk.Box()
             if(name in installed.keys()):
                 suffix_button = Gtk.Button(icon_name="delete-symbolic")
                 suffix_button.add_css_class("destructive-action")
-                suffix_button.connect("clicked", self.delete_theme, installed[name])
+                suffix_button.connect("clicked", self.delete_theme, installed[name][0])
+                use_button = self.set_use_menu_button(installed[name][1])
+                suffix_box.append(use_button)
             else:
                 suffix_button = Gtk.Button(icon_name="download-symbolic")
                 suffix_button.add_css_class("suggested-action")
                 suffix_button.connect("clicked", self.install_theme, link, name, self.theme_type)
+            suffix_box.append(suffix_button)
             suffix_button.add_css_class("circular")
             suffix_button.link = link; suffix_button.name = name
             suffix_button.set_valign(Gtk.Align.CENTER)
-            row.add_suffix(suffix_button)
+            row.add_suffix(suffix_box)
             download_list.append(row)
 
         content_box.append(Adw.Clamp(child=download_list, maximum_size=500))
         self.set_child(scroll)
-
-    def on_decide_policy(self, webview, decision, decision_type):
-        if(decision_type == WebKit.PolicyDecisionType.NAVIGATION_ACTION):
-            nav = decision.get_navigation_action()
-            if(nav.get_navigation_type() == WebKit.NavigationType.LINK_CLICKED):
-                request = nav.get_request()
-                uri = request.get_uri()
-                webbrowser.open(uri)
-
-        if(decision_type == 2):
-            decision.ignore()
 
     def make_carousel_images(self, images, carousel):
         carousel.add_css_class("view")
@@ -270,14 +267,62 @@ class InstallPage(Adw.NavigationPage):
         button.set_icon_name("download-symbolic")
         button.connect("clicked", self.install_theme, button.link, button.name, self.theme_type)
 
+        first_child = button.get_parent().get_first_child()
+        if(first_child != button): # Removes the 'Use' menu button from the row
+            button.get_parent().remove(first_child)
+
+
+    def set_theme(self, button):
+        interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+        chosen_item = button.get_label()
+        print(chosen_item)
+        match(self.theme_type):
+            case(0): # Gnome Shell
+                print("feature currently unavailable")
+                # shell_settings = Gio.Settings(schema_id="org.gnome.shell.extensions.user-theme")
+                # shell_settings.set_string("name", os.path.basename(installed_folders[0]))
+            case(1): # Icons
+                interface_settings.set_string("icon-theme", os.path.basename(chosen_item))
+            case(2): # Gtk
+                interface_settings.set_string("gtk-theme", os.path.basename(chosen_item))
+            case(3): # Cursors
+                interface_settings.set_string("cursor-theme", os.path.basename(chosen_item))
+            case(4): # Wallpapers
+                portal = Xdp.Portal()
+                parent = XdpGtk4.parent_new_gtk(self)
+                portal.set_wallpaper(
+                    parent,
+                    f"file://{chosen_item}",
+                    Xdp.WallpaperFlags.PREVIEW | Xdp.WallpaperFlags.BACKGROUND | Xdp.WallpaperFlags.LOCKSCREEN
+                )
+
+    def set_use_menu_button(self, themes):
+        use_button = Gtk.MenuButton(label=(_("Use")), margin_end=8, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
+        items = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        popover = Gtk.Popover()
+        popover.set_child(items)
+        for item in themes:
+            if(self.theme_type != 4):
+                theme = Gtk.Button(label=os.path.basename(item))
+            else:
+                theme = Gtk.Button(label=item)
+            theme.add_css_class("flat")
+            theme.connect("clicked", self.set_theme)
+            items.append(theme)
+        use_button.set_popover(popover)
+        return use_button
+
     def install_theme(self, button, url, name, typeid):
-        def change_button_to_delete(delete_paths):
+        def change_button_to_delete(delete_paths, theme_paths):
             button.disconnect_by_func(self.install_theme)
             button.remove_css_class("suggested-action")
             button.add_css_class("destructive-action")
             button.set_icon_name("delete-symbolic")
             button.connect("clicked", self.delete_theme, delete_paths)
-            add_theme(button.name, delete_paths)
+
+            use_button = self.set_use_menu_button(theme_paths)
+            button.get_parent().prepend(use_button)
+            add_theme(button.name, delete_paths, theme_paths)
 
         def on_download(response):
             download_path = os.path.join(folders[self.theme_type], name)
@@ -288,10 +333,10 @@ class InstallPage(Adw.NavigationPage):
         button.set_child(Gtk.Spinner(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER, spinning=True))
         soup_get(url, on_download)
 
-    def delete_theme(self, button, theme_paths):
+    def delete_theme(self, button, delete_paths):
         self.change_button_to_download(button)
         pop_theme(button.name)
-        for item in theme_paths:
+        for item in delete_paths:
             if(os.path.isdir(item)):
                 shutil.rmtree(item)
             else:

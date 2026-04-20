@@ -5,7 +5,7 @@ from .install_page import InstallPage
 class ThemeCell(Gtk.Box):
     session = Soup.Session()
     def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, height_request=350)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, width_request=350)
         self.add_css_class("card")
 
     def set_thumbnail_image(self, session, result):
@@ -38,30 +38,44 @@ class ThemeCell(Gtk.Box):
             self.page.add(install_page)
             self.page.push(install_page)
 
-        bottom_box = Gtk.Box(hexpand=True, valign=Gtk.Align.CENTER)
-        text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, margin_start=12, spacing=2, margin_bottom=8)
+        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        bottom_box = Gtk.Box(
+            margin_start=12, margin_end=12,
+            margin_top=8, margin_bottom=10,
+            spacing=4
+        )
 
-        title_label = Gtk.Label(label=self.title, xalign=0.0, wrap=True)
-        title_label.add_css_class("title-4")
+        text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=2)
+        title_label = Gtk.Label(label=self.title, xalign=0.0, wrap=True, hexpand=True)
+        title_label.add_css_class("bold")
 
-        dev_label = Gtk.Label(label=_("By: ") + self.dev, xalign=0.0)
-        dev_label.add_css_class("dimmed")
-
-        download_label = Gtk.Label(label=_("Downloads: ") + self.downloads, xalign=0.0)
+        download_label = Gtk.Label(label=f"↓ {self.downloads}, ★ {self.rating}", xalign=0.0, valign=Gtk.Align.CENTER)
         download_label.add_css_class("dimmed")
+
+        dev_label = Gtk.Label(
+            label=_("By: ") + self.dev,
+            xalign=0.0,
+            hexpand=True,
+            valign=Gtk.Align.CENTER
+        )
+        dev_label.add_css_class("dimmed")
 
         text_box.append(title_label)
         text_box.append(dev_label)
         text_box.append(download_label)
 
-        get_button = Gtk.Button(label=_("Get"), hexpand=True, vexpand=True, margin_end=12, valign=Gtk.Align.CENTER, halign=Gtk.Align.END)
+        get_button = Gtk.Button(label=_("Get"), valign=Gtk.Align.CENTER)
         get_button.set_css_classes(["pill", "suggested-action"])
         get_button.connect("clicked", on_get_button_clicked)
 
         bottom_box.append(text_box)
         bottom_box.append(get_button)
 
-        return bottom_box
+        wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        wrapper.append(separator)
+        wrapper.append(bottom_box)
+
+        return wrapper
 
     def build_cell(self):
         url = self.image_urls[0]

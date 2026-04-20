@@ -1,6 +1,6 @@
 import gi, random
 from gi.repository import Gtk, Adw
-from .utils import soup_get, parse_xml
+from .utils import soup_get, parse_json
 from .search_page import SearchPage
 from .theme_page import ThemePage
 
@@ -67,39 +67,44 @@ class CategoryBox(Gtk.FlowBox):
 class MainPage(Adw.NavigationPage):
     def __init__(self, view):
         super().__init__(tag="main_page")
-        content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18, margin_bottom=25)
         content_box.append(Adw.Clamp(maximum_size=840, child=CategoryBox(view)))
 
         for topic in ["Curated", "New & Updated"]:
-            title = Gtk.Label(label=_(topic))
-            title.add_css_class("title-1")
+            content_box.append(Gtk.Separator())
+            title = Gtk.Label(label=_(topic), halign=Gtk.Align.START, margin_start=25)
+            title.add_css_class("title-2")
             content_box.append(title)
 
             if(topic == "Curated"):
-                curated_ids = ["2299211", "1681315", "1477945", "1166289", "1359276", "1598493", "1197198", "1366182"]
-                self.curated_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, hexpand=True, halign=Gtk.Align.CENTER, vexpand=True, homogeneous=True, column_spacing=12, row_spacing=12, max_children_per_line=3)
+                curated_ids = ["2299211", "1681315", "1477945", "1166289", "1359276", "1598493", "1197198", "1366182", "1499429"]
+                self.curated_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True, column_spacing=12, min_children_per_line=9, max_children_per_line=9)
                 self.curated_flowbox.page = view
-                content_box.append(self.curated_flowbox)
+                side_scroll_box = Gtk.ScrolledWindow(child=self.curated_flowbox, height_request=420)
+                side_scroll_box.add_css_class("view")
+                content_box.append(side_scroll_box)
                 for item in curated_ids:
                     soup_get(self.get_url(item), self.make_curated)
             if(topic == "New & Updated"):
-                url = "https://api.opendesktop.org/ocs/v1/content/data/?page=0&pagesize=10&categories=134x386x366x107x261&sortmode=new"
-                self.new_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, hexpand=True, halign=Gtk.Align.CENTER, vexpand=True, homogeneous=True, column_spacing=12, row_spacing=24, max_children_per_line=3)
+                url = "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&pagesize=10&categories=134x386x366x107x261&sortmode=new"
+                self.new_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True, column_spacing=12, min_children_per_line=9, max_children_per_line=9)
                 self.new_flowbox.page = view
-                content_box.append(self.new_flowbox)
+                side_scroll_box = Gtk.ScrolledWindow(child=self.new_flowbox, height_request=420)
+                side_scroll_box.add_css_class("view")
+                content_box.append(side_scroll_box)
                 soup_get(url, self.make_new)
 
         scroller = Gtk.ScrolledWindow(child=content_box, vexpand=True, hexpand=True)
         self.set_child(scroller)
 
     def make_curated(self, response):
-        parse_xml(response, self.curated_flowbox)
+        parse_json(response, self.curated_flowbox)
 
     def make_new(self, response):
-        parse_xml(response, self.new_flowbox)
+        parse_json(response, self.new_flowbox)
 
     def get_url(self, id):
-        return f"https://api.opendesktop.org/ocs/v1/content/data/{id}"
+        return f"https://api.opendesktop.org/ocs/v1/content/data/{id}?format=json"
 
 
 
