@@ -1,35 +1,22 @@
-import gi, random
+import gi
 from gi.repository import Gtk, Adw, Soup, GLib, Gdk
 from .install_page import InstallPage
 
 class ThemeCell(Gtk.Box):
     session = Soup.Session()
     def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, width_request=350)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, width_request=350, height_request=420)
         self.add_css_class("card")
 
     def set_thumbnail_image(self, session, result):
         bytes = self.session.send_and_read_finish(result)
         texture = Gdk.Texture.new_from_bytes(bytes)
-        foreground = Gtk.Picture.new_for_paintable(texture)
-        foreground.set_content_fit(Gtk.ContentFit.CONTAIN)
-
-        foreground.set_margin_bottom(6)
-        foreground.set_margin_top(6)
-        foreground.set_margin_start(12)
-        foreground.set_margin_end(12)
 
         background = Gtk.Picture.new_for_paintable(texture)
-        background.add_css_class("blur")
         background.set_content_fit(Gtk.ContentFit.COVER)
-        background.set_valign(Gtk.Align.FILL)
-        background.set_halign(Gtk.Align.FILL)
+        background.set_vexpand(True)
 
-        overlay = Gtk.Overlay(hexpand=True, vexpand=True, height_request=280, margin_bottom=6)
-        overlay.set_child(Gtk.Frame(child=background))
-        overlay.add_overlay(foreground)
-
-        self.append(overlay)
+        self.append(background)
         self.append(self.make_bottom_box())
 
     def make_bottom_box(self):
@@ -39,11 +26,7 @@ class ThemeCell(Gtk.Box):
             self.page.push(install_page)
 
         separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        bottom_box = Gtk.Box(
-            margin_start=12, margin_end=12,
-            margin_top=8, margin_bottom=10,
-            spacing=4
-        )
+        bottom_box = Gtk.Box(margin_start=12, margin_end=12, margin_top=8, margin_bottom=10, spacing=4)
 
         text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, spacing=2)
         title_label = Gtk.Label(label=self.title, xalign=0.0, wrap=True, hexpand=True)
@@ -52,12 +35,7 @@ class ThemeCell(Gtk.Box):
         download_label = Gtk.Label(label=f"↓ {self.downloads}, ★ {self.rating}", xalign=0.0, valign=Gtk.Align.CENTER)
         download_label.add_css_class("dimmed")
 
-        dev_label = Gtk.Label(
-            label=_("By: ") + self.dev,
-            xalign=0.0,
-            hexpand=True,
-            valign=Gtk.Align.CENTER
-        )
+        dev_label = Gtk.Label(label=_("By: ") + self.dev, xalign=0.0, hexpand=True, valign=Gtk.Align.CENTER)
         dev_label.add_css_class("dimmed")
 
         text_box.append(title_label)

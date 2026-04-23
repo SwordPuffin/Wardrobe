@@ -97,7 +97,7 @@ class InstallPage(Adw.NavigationPage):
 
         download = theme_button.downloads
         score = f"{theme_button.rating}/10 ★"
-        changed = datetime.fromisoformat(theme_button.last_update).strftime("%b %d, %Y")
+        changed = datetime.fromisoformat(theme_button.last_update).strftime("%b. %d, %Y")
 
         now = datetime.now(timezone.utc)
         delta = now - datetime.fromisoformat(theme_button.last_update)
@@ -184,13 +184,13 @@ class InstallPage(Adw.NavigationPage):
         left_button.connect("clicked", scroll_to, -1)
         right_button.connect("clicked", scroll_to, 1)
 
-        make_break("Description", content_box)
+        content_box.append(Gtk.Separator())
 
         description_label = Gtk.Label(label=strip_html(description), wrap=True, selectable=True)
         description_label.set_css_classes(["description-label", "view"])
         content_box.append(description_label)
 
-        make_break("Download/Delete Theme", content_box)
+        make_break("Install Theme", content_box)
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         label = Gtk.Label(label=_("Save Folder"))

@@ -19,7 +19,7 @@ def soup_get(url, response_func):
 def match_theme_type(typeid):
     category_map = {
         134: 0, 386: 1, 199: 1, 132: 1, 366: 2, 135: 2, 136: 2,
-        107: 3, 300: 4, 312: 4, 261: 4, 299: 4, 283: 4, 360: 4
+        107: 3, 300: 4, 286: 4, 312: 4, 261: 4, 299: 4, 283: 4, 360: 4
     }
     return category_map.get(int(typeid), int(typeid))
 
@@ -96,6 +96,7 @@ def resolve_issues(archive_path, typeid, change_func):
 
         # I can't tell if this code is very good or very bad
         important_paths = set()
+        linked_paths = set()
         for folder in added:
             for root, dirs, files in os.walk(folder, topdown=False):
                 for folder_name in important_items:
@@ -112,24 +113,31 @@ def resolve_issues(archive_path, typeid, change_func):
                     os.symlink(path, os.path.join(theme_dir, os.path.basename(path)))
                 except:
                     continue
+            linked_paths = important_paths
         else:
             for path in important_paths:
                 extension = ""
                 folder = os.path.basename(path)
                 if('dark' in folder.lower()):
-                  extension = '-dark'
+                    extension = '-dark'
                 elif('light' in folder.lower()):
-                  extension = '-light'
+                    extension = '-light'
+
                 parent_name = os.path.basename(os.path.dirname(path)).lower()
                 correct_folder_name = folder.lower().replace(extension, '')
+
                 if(parent_name in correct_folder_name):
                     new_folder_name = correct_folder_name + extension
                 elif(correct_folder_name in parent_name):
                     new_folder_name = parent_name + extension
                 else:
-                    new_folder_name = folder + '-' + str(random.randint(1, 1000))
-                os.symlink(path, os.path.join(theme_dir, os.path.basename(new_folder_name)))
-        change_func(added, important_paths)
+                    new_folder_name = folder.lower() + '-' + str(random.randint(1, 1000))
+
+                new_path = os.path.join(theme_dir, os.path.basename(new_folder_name))
+                os.symlink(path, new_path)
+                
+                linked_paths.add(new_path)
+        change_func(added, linked_paths)
 
     if(is_picture(archive_path)):
         change_func([archive_path], [archive_path])
@@ -139,16 +147,16 @@ def resolve_issues(archive_path, typeid, change_func):
     extractor.start_async()
     extractor.connect("completed", arrange_folders)
 
-def parse_json(json_data, flowbox):
+def parse_json(response, flowbox):
     from .theme_cell import ThemeCell
-
-    if(isinstance(json_data, str)):
-        data = json.loads(json_data)
+    
+    if(isinstance(response, str)):
+        data = json.loads(response)
     else:
-        data = json_data
-
+        data = response
+            
     content = data.get("data", [])
-
+            
     for item in content:
         cell = ThemeCell()
         cell.page = flowbox.page

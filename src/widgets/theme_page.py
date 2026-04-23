@@ -17,16 +17,18 @@ class ThemePage(Adw.NavigationPage):
         super().__init__()
         content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18)
         button_box = Adw.ToggleGroup(hexpand=True, halign=Gtk.Align.CENTER)
+        button_box.add_css_class("round")
         button_box.connect("notify::active", self.on_type_changed)
         content_box.append(button_box)
 
-        for sortmode in ["Most Downloaded", "Alphabetical", "Highest Rated", "Recently Updated"]:
+        for sortmode in ["Popular", "Alphabetical", "Rating", "Latest"]:
             button = Adw.Toggle(label=_(sortmode), name=sortmode)
             button_box.add(button)
 
         self.theme_flowbox = ThemeCellFlowbox()
         self.theme_flowbox.page = view
         self.next_button = Gtk.Button(label=_("Next Page"), hexpand=True, halign=Gtk.Align.CENTER, width_request=350, margin_top=24, margin_bottom=24, visible=False)
+        self.theme_flowbox.next_page_button = self.next_button
         self.next_button.connect("clicked", self.next_page)
         theme_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         theme_box.append(self.theme_flowbox)
@@ -34,8 +36,10 @@ class ThemePage(Adw.NavigationPage):
         scroller = Gtk.ScrolledWindow(child=theme_box, hexpand=True, vexpand=True)
         content_box.append(scroller)
         self.set_child(content_box)
-
+    
     def next_page(self, button):
+        button.set_child(Gtk.Spinner(spinning=True))
+        button.set_sensitive(False)
         self.current_page += 1
         self.theme_action("add_page", categories[self.category] + self.selected + f"&page={self.current_page}");
 
@@ -46,19 +50,19 @@ class ThemePage(Adw.NavigationPage):
         if(action == "new_page"):
             self.current_page = 0
             self.theme_flowbox.remove_all()
+            self.next_button.set_visible(False)
         self.theme_flowbox.build_cells(url)
-        self.next_button.set_visible(True)
 
     def on_type_changed(self, group, button):
         label = group.get_active_name()
         match(label):
-            case("Most Downloaded"):
+            case("Popular"):
                 self.selected = "down"
             case("Alphabetical"):
                 self.selected = "alpha"
-            case("Highest Rated"):
+            case("Rating"):
                 self.selected = "high"
-            case("Recently Updated"):
+            case("Latest"):
                 self.selected = "new"
         self.theme_action("new_page", categories[self.category] + self.selected)
 

@@ -9,15 +9,16 @@ category_map = {
     }
 
 class SearchPage(Adw.NavigationPage):
-    def __init__(self):
+    def __init__(self, view):
         super().__init__(tag="search_page")
         content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18)
         search_box = Gtk.Box()
-        search_bar = Gtk.SearchEntry(placeholder_text=_("Search themes"), hexpand=True, margin_start=5, margin_end=5)
-        search_bar.connect("activate", self.search)
-        filter_button = Gtk.Button(icon_name="filter-symbolic", valign=Gtk.Align.CENTER)
+        self.search_bar = Gtk.SearchEntry(placeholder_text=_("Search themes"), hexpand=True, margin_start=5, margin_end=5)
+        self.search_bar.connect("activate", self.search, "new_page")
+        filter_button = Gtk.Button(icon_name="view-more-symbolic", valign=Gtk.Align.CENTER)
         filter_button.add_css_class("circular")
-
+        
+        self.current_page = 0
         self.filter_popover = Gtk.Popover()
         self.filter_popover.set_has_arrow(True)
         self.filter_popover.set_autohide(True)
@@ -25,19 +26,30 @@ class SearchPage(Adw.NavigationPage):
         self.make_filter()
         filter_button.connect("clicked", self.toggle_filter_popover)
 
-        search_box.append(search_bar); search_box.append(filter_button)
+        search_box.append(self.search_bar); search_box.append(filter_button)
         content_box.append(Adw.Clamp(maximum_size=520, child=search_box))
         content_box.append(Gtk.Separator())
 
         self.search_flowbox = ThemeCellFlowbox()
-        self.search_flowbox.page = self
-        self.search_icon = Gtk.Image(icon_name="search-symbolic", pixel_size=160, valign=Gtk.Align.END, vexpand=True)
+        self.search_flowbox.page = view
+        self.search_icon = Gtk.Image(icon_name="search-symbolic", pixel_size=160, valign=Gtk.Align.START, vexpand=True, margin_bottom=12)
         self.search_icon.add_css_class("dimmed")
-        scroller = Gtk.ScrolledWindow(child=self.search_flowbox, vexpand=True, hexpand=True)
-        content_box.append(self.search_icon)
+        self.search_flowbox.search_icon = self.search_icon
+        self.next_page_button = Gtk.Button(label=_("Next Page"), hexpand=True, halign=Gtk.Align.CENTER, width_request=350, margin_top=24, margin_bottom=24, visible=False)
+        self.next_page_button.connect("clicked", self.next_page)
+        self.search_flowbox.next_page_button = self.next_page_button
+        scroll_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        scroll_box.append(self.search_flowbox); scroll_box.append(self.next_page_button); scroll_box.append(self.search_icon)
+        scroller = Gtk.ScrolledWindow(child=scroll_box, vexpand=True, hexpand=True)
         content_box.append(scroller)
         self.set_child(content_box)
-
+    
+    def next_page(self, button):
+        button.set_child(Gtk.Spinner(spinning=True))
+        button.set_sensitive(False)
+        self.current_page += 1
+        self.search(self.search_bar, "add_page");
+        
     def toggle_filter_popover(self, button):
         if(self.filter_popover.get_visible()):
             self.filter_popover.popdown()
@@ -45,46 +57,38 @@ class SearchPage(Adw.NavigationPage):
             self.filter_popover.popup()
 
     def make_filter(self):
+        self.active_filters = {134, 386, 366, 107, 261}
         def on_filter_changed(button):
             if(button.id in self.active_filters):
+                if(len(self.active_filters) == 1): return
                 self.active_filters.remove(button.id)
-                button.remove_css_class("suggested-action")
+                button.remove_css_class("accent")
+                button.set_label(button.get_label().replace(" ✔", ""))
             else:
                 self.active_filters.add(button.id)
-                button.add_css_class("suggested-action")
-        activated = {134, 386, 366, 107, 261}
+                button.add_css_class("accent")
+                button.set_label(button.get_label() + " ✔")
 
-        filter_flowbox = Gtk.FlowBox(
-            selection_mode=Gtk.SelectionMode.NONE,
-            max_children_per_line=2,
-            column_spacing=6,
-            row_spacing=6,
-            margin_top=6,
-            margin_bottom=6,
-            margin_start=6,
-            margin_end=6
-        )
+        filters = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        filters.add_css_class("boxed-list-separate")
 
-        for category, id in zip(
-            [_("Gnome Shell"), _("Icons"), _("GTK3/4"), _("Cursors"), _("Wallpapers")],
-            activated
-        ):
-            button = Gtk.Button(label=category)
+        for category, id in [("Gnome Shell", 134), ("Icons", 386), ("GTK3/4", 366), ("Cursors", 107), ("Wallpapers", 261)]:
+            button = Gtk.Button(label=_(category) + " ✔")
             button.id = id
-            button.add_css_class("pill")
+            button.add_css_class("accent")
             button.connect("clicked", on_filter_changed)
-            filter_flowbox.append(button)
+            filters.append(button)
 
-        self.filter_popover.set_child(filter_flowbox)
+        self.filter_popover.set_child(filters)
 
-    def search(self, entry):
-        url = f"https://api.opendesktop.org/ocs/v1/content/data/?format=json&search={entry.get_text()}&page=0&pagesize=10&categories=134x386x366x107x261"
-        self.search_icon.set_visible(False)
-        self.search_flowbox.remove_all()
-        soup_get(url, self.list_search_items)
-
-    def list_search_items(self, reponse):
-        parse_json(reponse, self.search_flowbox)
+    def search(self, entry, action):
+        if(action == "new_page"):
+            self.search_icon.set_visible(False)
+            self.search_flowbox.remove_all()
+            self.current_page = 0
+        cats = "x".join(str(i) for i in self.active_filters)
+        url = f"https://api.opendesktop.org/ocs/v1/content/data/?format=json&search={entry.get_text()}&page={self.current_page}&pagesize=10&categories={cats}"
+        self.search_flowbox.build_cells(url)
 
 
 
