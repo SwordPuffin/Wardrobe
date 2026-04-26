@@ -7,15 +7,17 @@ class ThemeCell(Gtk.Box):
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, width_request=350, height_request=420)
         self.add_css_class("card")
-
-    def set_thumbnail_image(self, session, result):
+    
+    def set_thumbnail_image(self, session, result, background):
         bytes = self.session.send_and_read_finish(result)
         texture = Gdk.Texture.new_from_bytes(bytes)
-
+        
+        background.unparent()
         background = Gtk.Picture.new_for_paintable(texture)
         background.set_content_fit(Gtk.ContentFit.COVER)
+        background.add_css_class("rounded")
         background.set_vexpand(True)
-
+        
         self.append(background)
         self.append(self.make_bottom_box())
 
@@ -42,28 +44,31 @@ class ThemeCell(Gtk.Box):
         text_box.append(dev_label)
         text_box.append(download_label)
 
-        get_button = Gtk.Button(label=_("Get"), valign=Gtk.Align.CENTER)
-        get_button.set_css_classes(["pill", "suggested-action"])
-        get_button.connect("clicked", on_get_button_clicked)
+        self.get_button = Gtk.Button(label=_("Get"), valign=Gtk.Align.CENTER)
+        self.get_button.set_css_classes(["pill", "suggested-action"])
+        self.button_id = self.get_button.connect("clicked", on_get_button_clicked)
 
         bottom_box.append(text_box)
-        bottom_box.append(get_button)
+        bottom_box.append(self.get_button)
 
         wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         wrapper.append(separator)
         wrapper.append(bottom_box)
 
         return wrapper
-
+    
+    def destroy_cell(self):
+        try:
+            self.get_button.disconnect(self.button_id)
+        except:
+            # Errors might arise in testing, something like: gdk-pixbuf-error-quark: Loader process exited early with status '1'
+            # I do not believe this happens in production
+            print("Unable to disconnect function")
+        
     def build_cell(self):
         url = self.image_urls[0]
+        background = Gtk.Spinner(spinning=True, vexpand=True, valign=Gtk.Align.CENTER, width_request=40, height_request=40)
+        self.append(background)
         message = Soup.Message(method="GET", uri=GLib.Uri.parse(url, GLib.UriFlags.NONE))
-        self.session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.set_thumbnail_image)
-
-
-
-
-
-
-
+        self.session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.set_thumbnail_image, background)
 

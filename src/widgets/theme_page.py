@@ -64,7 +64,8 @@ class ThemePage(Adw.NavigationPage):
                 self.selected = "high"
             case("Latest"):
                 self.selected = "new"
-        self.theme_action("new_page", categories[self.category] + self.selected)
+        self.current_page = 0
+        self.theme_action("new_page", categories[self.category] + self.selected + f"&page=0")
 
 
 

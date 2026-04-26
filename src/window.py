@@ -59,5 +59,6 @@ class WardrobeWindow(Adw.ApplicationWindow):
         if(self.page.get_visible_page_tag() == "main_page"):
             self.back_button.set_visible(False)
         if(self.page.find_page("install_page") != None):
+            self.page.find_page("install_page").clean()
             self.page.remove(self.page.find_page("install_page"))
     

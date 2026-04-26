@@ -31,6 +31,7 @@ class SearchPage(Adw.NavigationPage):
         content_box.append(Gtk.Separator())
 
         self.search_flowbox = ThemeCellFlowbox()
+        self.search_flowbox.is_search_flowbox = True
         self.search_flowbox.page = view
         self.search_icon = Gtk.Image(icon_name="search-symbolic", pixel_size=160, valign=Gtk.Align.START, vexpand=True, margin_bottom=12)
         self.search_icon.add_css_class("dimmed")
@@ -84,6 +85,7 @@ class SearchPage(Adw.NavigationPage):
     def search(self, entry, action):
         if(action == "new_page"):
             self.search_icon.set_visible(False)
+            self.next_page_button.set_visible(False)
             self.search_flowbox.remove_all()
             self.current_page = 0
         cats = "x".join(str(i) for i in self.active_filters)

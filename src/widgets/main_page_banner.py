@@ -62,6 +62,7 @@ class FeaturedBanner(Gtk.Overlay):
     def on_image_loaded(self, session, result):
         data = self.session.send_and_read_finish(result)
         texture = Gdk.Texture.new_from_bytes(data)
+        del data
         self.background.set_paintable(texture)
 
     def build_banner(self, url):

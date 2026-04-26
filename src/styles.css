@@ -77,26 +77,19 @@
     transparent 30%,
     rgba(0, 0, 0, 0.72) 100%
   );
-  border-radius: 15px;
+  border-radius: 12px;
 }
 
 .featured-badge {
-  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  border-radius: 999px;
+  color: #ffffff;
   padding: 2px 10px;
-  margin-right: auto;
 }
 
 .featured-title {
   font-size: 1.45rem;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
 }
 
 .featured-meta {

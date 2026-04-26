@@ -16,13 +16,17 @@ class ThemeCellFlowbox(Gtk.FlowBox):
         self.next_page_button.set_visible(True)
         self.next_page_button.set_sensitive(True)
         self.next_page_button.set_label(_("Next Page"))
-        
-        if(len(data.get("data", [])) < 10):
+        if(hasattr(self, "is_search_flowbox") and len(data.get("data", [])) < 10):
             self.next_page_button.set_visible(False)
             self.search_icon.set_visible(True)
             self.search_icon.set_from_icon_name("list-remove-symbolic")
 
     def build_cells(self, url):
         soup_get(url, self.add_themes)
+        
+    def remove_all(self):
+        for button in self:
+            button.get_first_child().get_first_child().destroy_cell()
+        super().remove_all()
 
 
