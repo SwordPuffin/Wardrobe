@@ -15,18 +15,18 @@ class SearchPage(Adw.NavigationPage):
         search_box = Gtk.Box()
         self.search_bar = Gtk.SearchEntry(placeholder_text=_("Search themes"), hexpand=True, margin_start=5, margin_end=5)
         self.search_bar.connect("activate", self.search, "new_page")
-        filter_button = Gtk.Button(icon_name="view-more-symbolic", valign=Gtk.Align.CENTER)
-        filter_button.add_css_class("circular")
+        self.filter_button = Gtk.Button(icon_name="view-more-symbolic", valign=Gtk.Align.CENTER)
+        self.filter_button.add_css_class("circular")
         
         self.current_page = 0
         self.filter_popover = Gtk.Popover()
         self.filter_popover.set_has_arrow(True)
         self.filter_popover.set_autohide(True)
-        self.filter_popover.set_parent(filter_button)
+        self.filter_popover.set_parent(self.filter_button)
         self.make_filter()
-        filter_button.connect("clicked", self.toggle_filter_popover)
+        self.filter_button.connect("clicked", self.toggle_filter_popover)
 
-        search_box.append(self.search_bar); search_box.append(filter_button)
+        search_box.append(self.search_bar); search_box.append(self.filter_button)
         content_box.append(Adw.Clamp(maximum_size=520, child=search_box))
         content_box.append(Gtk.Separator())
 
@@ -91,6 +91,8 @@ class SearchPage(Adw.NavigationPage):
         cats = "x".join(str(i) for i in self.active_filters)
         url = f"https://api.opendesktop.org/ocs/v1/content/data/?format=json&search={entry.get_text()}&page={self.current_page}&pagesize=10&categories={cats}"
         self.search_flowbox.build_cells(url)
-
+    
+    def clean(self):
+        self.search_flowbox.remove_all()
 
 

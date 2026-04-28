@@ -49,10 +49,13 @@ class ThemePage(Adw.NavigationPage):
     def theme_action(self, action, url):
         if(action == "new_page"):
             self.current_page = 0
-            self.theme_flowbox.remove_all()
             self.next_button.set_visible(False)
+            self.clean()
         self.theme_flowbox.build_cells(url)
-
+    
+    def clean(self):
+        self.theme_flowbox.remove_all()
+        
     def on_type_changed(self, group, button):
         label = group.get_active_name()
         match(label):

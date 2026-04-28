@@ -92,7 +92,7 @@ class MainPage(Adw.NavigationPage):
                 for item in curated_ids:
                     soup_get(self.get_url(item), self.make_curated)
             if(topic == "New & Updated"):
-                url = "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&pagesize=10&categories=134x386x366x107x261&sortmode=new"
+                url = "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&pagesize=9&categories=134x386x366x107x261&sortmode=new"
                 self.new_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True, column_spacing=12, min_children_per_line=9, max_children_per_line=9)
                 self.new_flowbox.page = view
                 side_scroll_box = Gtk.ScrolledWindow(child=self.new_flowbox, height_request=420)
