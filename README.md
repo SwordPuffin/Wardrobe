@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/icons/hicolor/scalable/apps/io.github.swordpuffin.wardrobe.svg" width="100" height=100/>
+  <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/icons/hicolor/scalable/apps/io.github.swordpuffin.wardrobe.svg" width="128" height=128/>
 </p>
 <h1 align="center">Wardrobe</h1>
 

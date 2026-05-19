@@ -46,6 +46,7 @@ class WardrobeApplication(Adw.Application):
                                 developer_name='Nathan Perlman',
                                 version='1.1.4',
                                 developers=['Nathan Perlman'],
+                                artists=['Hylke Bons https://planetpeanut.studio'],
                                 copyright='© 2025 Nathan Perlman')
         # Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.
         about.set_translator_credits(_('translator-credits'))
