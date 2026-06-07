@@ -10,6 +10,7 @@ gnome.compile_resources('wardrobe',
 )
 
 python = import('python')
+
 conf = configuration_data()
 conf.set('PYTHON', python.find_installation('python3').full_path())
 conf.set('VERSION', meson.project_version())
@@ -22,14 +23,28 @@ configure_file(
   configuration: conf,
   install: true,
   install_dir: get_option('bindir'),
-  install_mode: 'r-xr-xr-x'
+  install_mode: 'rwxr-xr-x'
 )
 
 wardrobe_sources = [
   '__init__.py',
   'main.py',
   'window.py',
-  'utils.py'
+  'utils.py',
+  'styles.css'
 ]
 
 install_data(wardrobe_sources, install_dir: moduledir)
+
+widget_sources = [
+	'widgets/theme_cell.py',
+	'widgets/theme_cell_flowbox.py',
+	'widgets/install_page.py',
+	'widgets/main_page.py',
+	'widgets/search_page.py',
+	'widgets/theme_page.py',
+	'widgets/main_page_banner.py',
+	'widgets/item_carousel.py'
+]
+
+install_data(widget_sources, install_dir: moduledir)
