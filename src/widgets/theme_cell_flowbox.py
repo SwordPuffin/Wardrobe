@@ -4,7 +4,7 @@ from .utils import soup_get, parse_json
 
 class ThemeCellFlowbox(Gtk.FlowBox):
     def __init__(self):
-        super().__init__(selection_mode=Gtk.SelectionMode.NONE, hexpand=True, vexpand=True, homogeneous=True, column_spacing=12, row_spacing=12, halign=Gtk.Align.CENTER, margin_bottom=12)
+        super().__init__(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True, column_spacing=12, row_spacing=12, halign=Gtk.Align.CENTER, margin_bottom=12)
         
     def add_themes(self, response):
         if(isinstance(response, str)):

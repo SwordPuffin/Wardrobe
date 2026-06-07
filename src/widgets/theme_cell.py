@@ -5,7 +5,7 @@ from .install_page import InstallPage
 class ThemeCell(Gtk.Box):
     session = Soup.Session()
     def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, width_request=350, height_request=420)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, width_request=350, height_request=400)
         self.add_css_class("card")
     
     def set_thumbnail_image(self, session, result, background):
@@ -44,8 +44,8 @@ class ThemeCell(Gtk.Box):
         text_box.append(dev_label)
         text_box.append(download_label)
 
-        self.get_button = Gtk.Button(label=_("Get"), valign=Gtk.Align.CENTER)
-        self.get_button.set_css_classes(["pill", "suggested-action"])
+        self.get_button = Gtk.Button(icon_name="download-symbolic", valign=Gtk.Align.CENTER)
+        self.get_button.set_css_classes(["circular", "suggested-action"])
         self.button_id = self.get_button.connect("clicked", on_get_button_clicked)
 
         bottom_box.append(text_box)
@@ -54,7 +54,7 @@ class ThemeCell(Gtk.Box):
         wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         wrapper.append(separator)
         wrapper.append(bottom_box)
-
+        
         return wrapper
     
     def destroy_cell(self):
@@ -71,4 +71,5 @@ class ThemeCell(Gtk.Box):
         self.append(background)
         message = Soup.Message(method="GET", uri=GLib.Uri.parse(url, GLib.UriFlags.NONE))
         self.session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.set_thumbnail_image, background)
+
 

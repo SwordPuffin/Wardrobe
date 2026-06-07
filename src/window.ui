@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="WardrobeWindow" parent="AdwApplicationWindow">
-    <property name="default-width">600</property>
-    <property name="default-height">600</property>
+    <property name="default-width">550</property>
+    <property name="default-height">550</property>
 
     <property name="content">
       <object class="AdwToolbarView">

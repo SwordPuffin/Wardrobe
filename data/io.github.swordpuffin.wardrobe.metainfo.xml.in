@@ -7,8 +7,7 @@
   <name>Wardrobe</name>
   <summary>Prettify your desktop effortlessly</summary>
   <description>
-    <p>Wardrobe is a utility for downloading community made Gnome Shell, Gtk3/4, icon, and cursor themes as well as wallpapers</p>
-    <p>**This app has only been tested on the GNOME desktop, so do not expect it to fully work in Cinnamon, Xfce, etc.**</p>
+    <p>Wardrobe is a utility for downloading community made GNOME Shell, GTK3/4, icon, and cursor themes as well as wallpapers</p>
   </description>
 
   <developer id="io.github.swordpuffin">
@@ -24,8 +23,8 @@
   <content_rating type="oars-1.1" />
 
   <branding>
-    <color type="primary" scheme_preference="light">#cdab8f</color>
-    <color type="primary" scheme_preference="dark">#865e3c</color>
+    <color type="primary" scheme_preference="light">#BBF5F9</color>
+    <color type="primary" scheme_preference="dark">#B7176C</color>
   </branding>
 
   <screenshots>
@@ -43,6 +42,17 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.5" date="2026-06-10">
+      <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.5</url>
+      <description translate="no">
+        <p>Wardrobe v1.1.5</p>
+        <ul>
+          <li>Complete rebuild of the entire application's interface</li>
+          <li>Big performance improvements, including a reduction in memory leaks</li>
+          <li>New app icon created by Hylke Bons (https://planetpeanut.studio)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.4" date="2025-12-26">
       <url type="details">https://github.com/SwordPuffin/Wardrobe/releases/tag/v1.1.4</url>
       <description translate="no">

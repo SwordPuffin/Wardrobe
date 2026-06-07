@@ -19,7 +19,8 @@ def soup_get(url, response_func):
 def match_theme_type(typeid):
     category_map = {
         134: 0, 386: 1, 199: 1, 132: 1, 366: 2, 135: 2, 136: 2,
-        107: 3, 300: 4, 286: 4, 312: 4, 261: 4, 299: 4, 283: 4, 360: 4
+        107: 3, 300: 4, 286: 4, 312: 4, 261: 4, 299: 4, 283: 4, 360: 4,
+        287: 4
     }
     return category_map.get(int(typeid), int(typeid))
 
@@ -200,7 +201,24 @@ def parse_json(response, flowbox):
                 break
             cell.image_urls.append(preview)
             z += 1
-
         cell.build_cell()
-        flowbox.insert(Adw.Clamp(child=cell, maximum_size=375), -1)
-
+        flowbox.append(Adw.Clamp(child=cell, maximum_size=375))
+                
+        if(hasattr(flowbox, "get_n_pages")):
+            if(flowbox.get_n_pages() == 7):
+                mid = flowbox.get_n_pages() // 2
+                def scroll(attempts=0):
+                    page = flowbox.get_nth_page(mid)
+                    if(page is None or attempts > 20):
+                        return False
+                    flowbox.scroll_to(page, False)
+                    if(round(flowbox.get_position()) != mid):
+                        GLib.timeout_add(20, scroll, attempts + 1)
+                    return False
+                GLib.idle_add(scroll)
+                break
+        
+    if(hasattr(flowbox, "group")):
+        flowbox.group.set_sensitive(True)
+    
+    

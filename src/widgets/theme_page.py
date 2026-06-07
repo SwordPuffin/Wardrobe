@@ -1,4 +1,4 @@
-import gi
+import gi, threading
 from gi.repository import Gtk, Adw
 from .theme_cell_flowbox import ThemeCellFlowbox
 
@@ -12,11 +12,14 @@ categories = {
 
 class ThemePage(Adw.NavigationPage):
     current_page = 0
+    selected = "down"
 
     def __init__(self, view):
         super().__init__()
         content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.theme_flowbox = ThemeCellFlowbox()
         button_box = Adw.ToggleGroup(hexpand=True, halign=Gtk.Align.CENTER)
+        self.theme_flowbox.group = button_box
         button_box.add_css_class("round")
         button_box.connect("notify::active", self.on_type_changed)
         content_box.append(button_box)
@@ -25,7 +28,6 @@ class ThemePage(Adw.NavigationPage):
             button = Adw.Toggle(label=_(sortmode), name=sortmode)
             button_box.add(button)
 
-        self.theme_flowbox = ThemeCellFlowbox()
         self.theme_flowbox.page = view
         self.next_button = Gtk.Button(label=_("Next Page"), hexpand=True, halign=Gtk.Align.CENTER, width_request=350, margin_top=24, margin_bottom=24, visible=False)
         self.theme_flowbox.next_page_button = self.next_button
@@ -57,18 +59,17 @@ class ThemePage(Adw.NavigationPage):
         self.theme_flowbox.remove_all()
         
     def on_type_changed(self, group, button):
-        label = group.get_active_name()
-        match(label):
-            case("Popular"):
-                self.selected = "down"
-            case("Alphabetical"):
-                self.selected = "alpha"
-            case("Rating"):
-                self.selected = "high"
-            case("Latest"):
-                self.selected = "new"
-        self.current_page = 0
-        self.theme_action("new_page", categories[self.category] + self.selected + f"&page=0")
-
-
-
+        if(hasattr(self, "category")):
+            group.set_sensitive(False)
+            label = group.get_active_name()
+            match(label):
+                case("Popular"):
+                    self.selected = "down"
+                case("Alphabetical"):
+                    self.selected = "alpha"
+                case("Rating"):
+                    self.selected = "high"
+                case("Latest"):
+                    self.selected = "new"
+            self.current_page = 0
+            self.theme_action("new_page", categories[self.category] + self.selected + f"&page=0")    

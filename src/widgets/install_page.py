@@ -19,12 +19,11 @@
 
 import gi, os, shutil, webbrowser, json, gc
 from html.parser import HTMLParser
-gi.require_version('WebKit', '6.0')
-gi.require_version('Xdp', '1.0')
-gi.require_version('XdpGtk4', '1.0')
-from gi.repository import Gtk, Gdk, Adw, Gio, GLib, WebKit, Soup, Xdp, XdpGtk4
+from gi.repository import Gtk, Gdk, Adw, Gio, GLib, Soup, Xdp, XdpGtk4
 from .utils import match_theme_type, soup_get, resolve_issues, strip_html
+from .item_carousel import ItemCarousel
 from datetime import datetime, timezone
+
 
 data_home = os.path.join(GLib.getenv("HOME"), '.local', 'share')
 picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
@@ -60,14 +59,7 @@ def pop_theme(key):
     del data[key]
     with open(json_path, "w") as f:
         json.dump(data, f, indent=2)
-
-def make_break(title, box):
-    title_label = Gtk.Label(label=_(title))
-    title_label.add_css_class("title-2")
-    separator = Gtk.Separator()
-    box.append(separator)
-    box.append(title_label)
-
+        
 class InstallPage(Adw.NavigationPage):
     def __init__(self, theme_button):
         super().__init__(vexpand=True, hexpand=True)
@@ -77,7 +69,7 @@ class InstallPage(Adw.NavigationPage):
         names = theme_button.download_names
         images = theme_button.image_urls
         description = theme_button.description
-        content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=36)
+        content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18)
         scroll = Gtk.ScrolledWindow(child=content_box)
         self.theme_type = match_theme_type(theme_button.theme_type)
         self.set_tag("install_page")
@@ -143,45 +135,41 @@ class InstallPage(Adw.NavigationPage):
             if(tag != "Last Updated"):
                 info_box.append(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL, margin_top=8, margin_bottom=8))
 
-        make_break("Screenshots", content_box)
-
-        carousel = Adw.Carousel(allow_scroll_wheel=False, height_request=280)
-        carousel.add_css_class("card")
-        self.make_carousel_images(images, carousel)
-
-        overlay = Gtk.Overlay()
-        overlay.set_child(carousel)
-
-        left_button = Gtk.Button(icon_name="go-previous-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, margin_start=12)
-        left_button.set_css_classes(["circular", "osd"])
-        left_button.set_margin_start(12)
-
-        right_button = Gtk.Button(icon_name="go-next-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, margin_start=12)
-        right_button.set_css_classes(["circular", "osd"])
-        right_button.set_margin_end(12)
-
-        overlay.add_overlay(left_button)
-        overlay.add_overlay(right_button)
-        content_box.append(overlay)
-
-        def scroll_to(button, direction):
-            try:
-                carousel.scroll_to(carousel.get_nth_page(carousel.get_position() + direction), True)
-            except:
-                if(carousel.get_position() + direction < 0):
-                    carousel.scroll_to(carousel.get_nth_page(carousel.get_n_pages() - 1), True)
-                else:
-                    carousel.scroll_to(carousel.get_nth_page(0), True)
-
-        self.connect_button(left_button, "clicked", scroll_to, -1)
-        self.connect_button(right_button, "clicked", scroll_to, 1)
-
+        
         content_box.append(Gtk.Separator())
-        description_label = Gtk.Label(label=strip_html(description), wrap=True, selectable=True)
-        description_label.set_css_classes(["description-label", "view"])
-        content_box.append(description_label)
+        self.item_carousel = ItemCarousel(self.connect_button)
+        self.make_carousel_images(images, self.item_carousel.carousel)
+        
+        content_box.append(Adw.Clamp(child=self.item_carousel, maximum_size=900, height_request=350, margin_start=12, margin_end=12))
+        
+        content_box.append(Gtk.Separator())
+        DESCRIPTION_CHAR_LIMIT = 300
 
-        make_break("Install Theme", content_box)
+        stripped = strip_html(description)
+        is_long = len(stripped) > DESCRIPTION_CHAR_LIMIT
+
+        description_label = Gtk.Label(label=stripped if not is_long else stripped[:DESCRIPTION_CHAR_LIMIT] + "…", wrap=True, selectable=True, margin_start=12, margin_end=12)
+        description_label.set_css_classes(["description-label"])
+        content_box.append(Adw.Clamp(child=description_label, maximum_size=900))
+
+        if(is_long):
+            read_more_button = Gtk.Button(label=_("Show More"), halign=Gtk.Align.CENTER)
+            read_more_button.set_css_classes(["pill"])
+            self.expanded = False
+
+            def on_read_more_clicked(button):
+                if(not self.expanded):
+                    description_label.set_label(stripped)
+                    button.set_label(_("Show Less"))
+                    self.expanded = True
+                else:
+                    description_label.set_label(stripped[:DESCRIPTION_CHAR_LIMIT] + "…")
+                    button.set_label(_("Read more"))
+                    self.expanded = False
+
+            self.connect_button(read_more_button, "clicked", on_read_more_clicked)
+            content_box.append(read_more_button)
+        content_box.append(Gtk.Separator())
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         label = Gtk.Label(label=_("Save Folder"))
@@ -205,23 +193,23 @@ class InstallPage(Adw.NavigationPage):
             row = Adw.ActionRow(title=name)
             suffix_box = Gtk.Box()
             if(name in installed.keys()):
-                suffix_button = Gtk.Button(icon_name="delete-symbolic")
+                suffix_button = Gtk.Button(icon_name="delete-symbolic", valign=Gtk.Align.CENTER)
                 suffix_button.add_css_class("destructive-action")
                 self.connect_button(suffix_button, "clicked", self.delete_theme, installed[name][0])
                 use_button = self.set_use_menu_button(installed[name][1])
                 suffix_box.append(use_button)
             else:
-                suffix_button = Gtk.Button(icon_name="download-symbolic")
+                suffix_button = Gtk.Button(icon_name="download-symbolic", valign=Gtk.Align.CENTER)
                 suffix_button.add_css_class("suggested-action")
                 self.connect_button(suffix_button, "clicked", self.install_theme, link, name, self.theme_type)
             suffix_box.append(suffix_button)
             suffix_button.add_css_class("circular")
             suffix_button.link = link
             suffix_button.name = name
-            suffix_button.set_valign(Gtk.Align.CENTER)
             row.add_suffix(suffix_box)
             download_list.append(row)
-        content_box.append(Adw.Clamp(child=download_list, maximum_size=500))
+            
+        content_box.append(Adw.Clamp(child=download_list, maximum_size=600))
         self.set_child(scroll)
 
     def connect_button(self, widget, signal, handler, *args):
@@ -233,21 +221,17 @@ class InstallPage(Adw.NavigationPage):
         for widget, signal_id in self.signal_ids:
             widget.disconnect(signal_id)
         self.signal_ids.clear()
+        self.item_carousel.clean()
         gc.collect()
 
     def make_carousel_images(self, images, carousel):
-        carousel.add_css_class("view")
         def on_receive_bytes(session, result, message):
             bytes = session.send_and_read_finish(result)
             if(message.get_status() != Soup.Status.OK):
                 raise Exception(f"Got {message.get_status()}, {message.get_reason_phrase()}")
             texture = Gdk.Texture.new_from_bytes(bytes)
             picture = Gtk.Picture.new_for_paintable(texture)
-            picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
-            picture.set_margin_top(12)
-            picture.set_margin_bottom(12)
-            picture.set_margin_start(12)
-            picture.set_margin_end(12)
+            picture.set_content_fit(Gtk.ContentFit.CONTAIN)
             carousel.append(picture)
 
         def get_image_bytes(url):
@@ -273,27 +257,6 @@ class InstallPage(Adw.NavigationPage):
         first_child = button.get_parent().get_first_child()
         if(first_child != button):
             button.get_parent().remove(first_child)
-
-    def set_theme(self, button):
-        interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
-        chosen_item = button.get_label()
-        match self.theme_type:
-            case 0:
-                print("feature currently unavailable")
-            case 1:
-                interface_settings.set_string("icon-theme", os.path.basename(chosen_item))
-            case 2:
-                interface_settings.set_string("gtk-theme", os.path.basename(chosen_item))
-            case 3:
-                interface_settings.set_string("cursor-theme", os.path.basename(chosen_item))
-            case 4:
-                portal = Xdp.Portal()
-                parent = XdpGtk4.parent_new_gtk(self)
-                portal.set_wallpaper(
-                    parent,
-                    f"file://{chosen_item}",
-                    Xdp.WallpaperFlags.PREVIEW | Xdp.WallpaperFlags.BACKGROUND | Xdp.WallpaperFlags.LOCKSCREEN
-                )
 
     def set_use_menu_button(self, themes):
         use_button = Gtk.MenuButton(label=(_("Use")), margin_end=8, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
@@ -341,3 +304,24 @@ class InstallPage(Adw.NavigationPage):
                 shutil.rmtree(item)
             else:
                 os.remove(item)
+                
+    def set_theme(self, button):
+        interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+        chosen_item = button.get_label()
+        match self.theme_type:
+            case 0:
+                print("feature currently unavailable")
+            case 1:
+                interface_settings.set_string("icon-theme", os.path.basename(chosen_item))
+            case 2:
+                interface_settings.set_string("gtk-theme", os.path.basename(chosen_item))
+            case 3:
+                interface_settings.set_string("cursor-theme", os.path.basename(chosen_item))
+            case 4:
+                portal = Xdp.Portal()
+                parent = XdpGtk4.parent_new_gtk(self.get_root())
+                portal.set_wallpaper(
+                    parent,
+                    f"file://{chosen_item}",
+                    Xdp.WallpaperFlags.PREVIEW | Xdp.WallpaperFlags.BACKGROUND | Xdp.WallpaperFlags.LOCKSCREEN
+                )

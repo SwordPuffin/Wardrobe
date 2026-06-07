@@ -27,8 +27,6 @@ from gi.repository import Gtk, Gio, Adw
 from .window import WardrobeWindow
 
 class WardrobeApplication(Adw.Application):
-    """The main application singleton class."""
-
     def __init__(self):
         super().__init__(application_id='io.github.swordpuffin.wardrobe',
                          flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
@@ -37,41 +35,27 @@ class WardrobeApplication(Adw.Application):
         self.create_action('about', self.on_about_action)
 
     def do_activate(self):
-        """Called when the application is activated.
-
-        We raise the application's main window, creating it if
-        necessary.
-        """
         win = self.props.active_window
         if not win:
             win = WardrobeWindow(application=self)
         win.present()
 
     def on_about_action(self, *args):
-        """Callback for the app.about action."""
-        about = Adw.AboutDialog(application_name='wardrobe',
+        about = Adw.AboutDialog(application_name='Wardrobe',
                                 application_icon='io.github.swordpuffin.wardrobe',
                                 developer_name='Nathan Perlman',
-                                version='0.1.0',
+                                version='1.1.5',
                                 developers=['Nathan Perlman'],
-                                copyright='© 2025 Nathan Perlman')
+                                artists=['Hylke Bons https://planetpeanut.studio'],
+                                copyright='© 2026 Nathan Perlman')
         # Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.
         about.set_translator_credits(_('translator-credits'))
         about.present(self.props.active_window)
 
     def on_preferences_action(self, widget, _):
-        """Callback for the app.preferences action."""
         print('app.preferences action activated')
 
     def create_action(self, name, callback, shortcuts=None):
-        """Add an application action.
-
-        Args:
-            name: the name of the action
-            callback: the function to be called when the action is
-              activated
-            shortcuts: an optional list of accelerators
-        """
         action = Gio.SimpleAction.new(name, None)
         action.connect("activate", callback)
         self.add_action(action)
@@ -80,6 +64,5 @@ class WardrobeApplication(Adw.Application):
 
 
 def main(version):
-    """The application's entry point."""
     app = WardrobeApplication()
     return app.run(sys.argv)

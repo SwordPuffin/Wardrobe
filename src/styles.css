@@ -71,11 +71,17 @@
   font-weight: bold;
 }
 
+.carousel-view {
+	background-color: alpha(@window_fg_color, 0.05);
+  border: 1px solid alpha(@window_fg_color, 0.08);
+  border-radius: 12px;
+}
+
 .featured-banner-scrim {
-  background: linear-gradient(
-    to bottom,
-    transparent 30%,
-    rgba(0, 0, 0, 0.72) 100%
+  background: linear-gradient( 
+    to bottom, 
+    transparent 10%, 
+    rgba(0, 0, 0, 0.72) 100% 
   );
   border-radius: 12px;
 }
@@ -96,3 +102,15 @@
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.75);
 }
+
+.search {
+    border-radius: 50px;
+    padding: 6px 12px;
+    background-color: alpha(@card_bg_color, 0.85);
+    border: 1px solid alpha(@borders, 0.5);
+    box-shadow: 0 1px 4px alpha(black, 0.08);
+    transition: border-color 200ms ease,
+                box-shadow 200ms ease,
+                background-color 200ms ease;
+}
+

@@ -4,6 +4,7 @@ from .utils import soup_get, parse_json
 from .search_page import SearchPage
 from .theme_page import ThemePage
 from .main_page_banner import FeaturedBanner
+from .item_carousel import ItemCarousel
 
 class CategoryBox(Gtk.FlowBox):
     def __init__(self, view):
@@ -69,45 +70,56 @@ class MainPage(Adw.NavigationPage):
     def __init__(self, view):
         super().__init__(tag="main_page")
         content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18, margin_bottom=25)
-        curated_ids = random.sample(["2299211", "1681315", "1477945", "1166289", "1359276", "1598493", "1197198", "1366182", "1499429", "1209330", "1267246", "1203425"], 10)
+        curated_ids = random.sample(["2299211", "1681315", "1477945", "1166289", "1359276", "1598493", "1197198", "1366182", "1499429", "1209330", "1267246", "1203425"], 8)
         featured_banner = FeaturedBanner()
         featured_banner.page = view
         featured_banner.build_banner(self.get_url(curated_ids[0]))
         curated_ids.pop(0)
-        content_box.append(Adw.Clamp(maximum_size=1000, child=featured_banner))
+        content_box.append(Adw.Clamp(maximum_size=880, child=featured_banner))
         content_box.append(Adw.Clamp(maximum_size=840, child=CategoryBox(view)))
         
-        for topic in ["Curated", "New & Updated"]:
-            content_box.append(Gtk.Separator())
-            title = Gtk.Label(label=_(topic), halign=Gtk.Align.START, margin_start=25)
+        content_box.append(Gtk.Separator())
+        carousel_box = Gtk.Box()
+        content_box.append(carousel_box)
+        carousel_configs = [
+            ("Curated", None, None),
+            ("Most Downloaded", "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&&categories=134x386x366x107x261&sortmode=down", None),
+            ("New & Updated", "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&categories=134x386x366x107x261&sortmode=new", None),
+        ]
+
+        for topic, url, _ in carousel_configs:
+            title = Gtk.Label(label=topic, halign=Gtk.Align.START, margin_start=25, margin_top=25)
             title.add_css_class("title-2")
-            content_box.append(title)
+
+            carousel = ItemCarousel(self.connect_button)
+            carousel.carousel.page = view
+
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+            box.append(title)
+            box.append(carousel)
+            content_box.append(Adw.Clamp(maximum_size=1350, child=box))
 
             if(topic == "Curated"):
-                self.curated_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True, column_spacing=12, min_children_per_line=9, max_children_per_line=9)
-                self.curated_flowbox.page = view
-                side_scroll_box = Gtk.ScrolledWindow(child=self.curated_flowbox, height_request=420)
-                side_scroll_box.add_css_class("view")
-                content_box.append(side_scroll_box)
+                self.curated_carousel = carousel
                 for item in curated_ids:
                     soup_get(self.get_url(item), self.make_curated)
-            if(topic == "New & Updated"):
-                url = "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&pagesize=9&categories=134x386x366x107x261&sortmode=new"
-                self.new_flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True, column_spacing=12, min_children_per_line=9, max_children_per_line=9)
-                self.new_flowbox.page = view
-                side_scroll_box = Gtk.ScrolledWindow(child=self.new_flowbox, height_request=420)
-                side_scroll_box.add_css_class("view")
-                content_box.append(side_scroll_box)
-                soup_get(url, self.make_new)
-
+            else:
+                attr = "down_carousel" if topic == "Most Downloaded" else "new_carousel"
+                setattr(self, attr, carousel)
+                callback = self.make_new if topic == "New & Updated" else lambda r, c=carousel.carousel: parse_json(r, c)
+                soup_get(url, callback)
+       
         scroller = Gtk.ScrolledWindow(child=content_box, vexpand=True, hexpand=True)
         self.set_child(scroller)
-
+    
+    def connect_button(self, widget, signal, handler, *args):
+        widget.connect(signal, handler, *args)
+        
     def make_curated(self, response):
-        parse_json(response, self.curated_flowbox)
+        parse_json(response, self.curated_carousel.carousel)
 
     def make_new(self, response):
-        parse_json(response, self.new_flowbox)
+        parse_json(response, self.new_carousel.carousel)
 
     def get_url(self, id):
         return f"https://api.opendesktop.org/ocs/v1/content/data/{id}?format=json"

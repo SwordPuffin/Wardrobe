@@ -18,8 +18,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import gi, os
+gi.require_version('Xdp', '1.0')
+gi.require_version('XdpGtk4', '1.0')
 gi.require_version('Soup', '3.0')
-from gi.repository import Gtk, Gdk, Adw, Gio
+from gi.repository import Gtk, Gdk, Adw, Gio, Xdp, XdpGtk4
 from .main_page import MainPage
 
 @Gtk.Template(resource_path='/io/github/swordpuffin/wardrobe/window.ui')
@@ -62,4 +64,5 @@ class WardrobeWindow(Adw.ApplicationWindow):
             self.page.remove(self.page.find_page("search_page"))
         if(self.page.find_page("install_page") != None):
             self.page.remove(self.page.find_page("install_page"))
-    
+                
+        

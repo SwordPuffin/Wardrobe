@@ -13,7 +13,7 @@ class SearchPage(Adw.NavigationPage):
         super().__init__(tag="search_page")
         content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18)
         search_box = Gtk.Box()
-        self.search_bar = Gtk.SearchEntry(placeholder_text=_("Search themes"), hexpand=True, margin_start=5, margin_end=5)
+        self.search_bar = Gtk.SearchEntry(placeholder_text=_("Search Themes"), hexpand=True, margin_start=5, margin_end=5)
         self.search_bar.connect("activate", self.search, "new_page")
         filter_button = Gtk.Button(icon_name="view-more-symbolic", valign=Gtk.Align.CENTER)
         filter_button.add_css_class("circular")
@@ -70,8 +70,7 @@ class SearchPage(Adw.NavigationPage):
                 button.add_css_class("accent")
                 button.set_label(button.get_label() + " ✔")
 
-        filters = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
-        filters.add_css_class("boxed-list-separate")
+        filters = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, min_children_per_line=1, max_children_per_line=2)
 
         for category, id in [("Gnome Shell", 134), ("Icons", 386), ("GTK3/4", 366), ("Cursors", 107), ("Wallpapers", 261)]:
             button = Gtk.Button(label=_(category) + " ✔")
@@ -94,4 +93,5 @@ class SearchPage(Adw.NavigationPage):
     
     def clean(self):
         self.search_flowbox.remove_all()
+
 

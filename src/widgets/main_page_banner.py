@@ -15,14 +15,15 @@ class FeaturedBanner(Gtk.Overlay):
         self.background.add_css_class("rounded")
         self.set_child(self.background)
 
-        scrim = Gtk.Box()
-        scrim.set_hexpand(True)
-        scrim.set_vexpand(True)
-        scrim.add_css_class("featured-banner-scrim")
-        self.add_overlay(scrim)
+        self.scrim = Gtk.Box()
+        self.add_overlay(self.scrim)
 
-        content_row = self.make_content_row()
-        self.add_overlay(content_row)
+        self.spinner = Gtk.Spinner(spinning=True, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER, height_request=40, width_request=40)
+        self.add_overlay(self.spinner)
+
+        self.content_row = self.make_content_row()
+        self.content_row.set_visible(False)
+        self.add_overlay(self.content_row)
 
         self.add_css_class("featured-banner")
 
@@ -38,7 +39,7 @@ class FeaturedBanner(Gtk.Overlay):
         self.meta_label = Gtk.Label(label="", xalign=0.0)
         self.meta_label.add_css_class("featured-meta")
 
-        left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, valign=Gtk.Align.END, hexpand=True,)
+        left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, valign=Gtk.Align.END, hexpand=True)
         left_box.append(self.title_label)
         left_box.append(self.meta_label)
 
@@ -64,24 +65,29 @@ class FeaturedBanner(Gtk.Overlay):
         texture = Gdk.Texture.new_from_bytes(data)
         del data
         self.background.set_paintable(texture)
+        self.scrim.add_css_class("featured-banner-scrim")
+
+        self.spinner.set_spinning(False)
+        self.spinner.set_visible(False)
+        self.content_row.set_visible(True)
 
     def build_banner(self, url):
-        def make_ui():    
+        def make_ui():
             self.title_label.set_label(self.title)
             self.meta_label.set_label(_("By: ") + self.dev + f"   ↓ {self.downloads}   ★ {self.rating}")
 
-            url = self.image_urls[0]
-            message = Soup.Message(method="GET", uri=GLib.Uri.parse(url, GLib.UriFlags.NONE))
+            image_url = self.image_urls[0]
+            message = Soup.Message(method="GET", uri=GLib.Uri.parse(image_url, GLib.UriFlags.NONE))
             self.session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, self.on_image_loaded)
-            
+
         def get_params(response):
             if(isinstance(response, str)):
                 data = json.loads(response)
             else:
                 data = response
-                    
+
             content = data.get("data", [])[0]
-            
+
             self.title = content.get("name", "Unknown")
             self.home_page = content.get("detailpage", "")
             self.dev = content.get("personid", "Unknown")
@@ -90,7 +96,7 @@ class FeaturedBanner(Gtk.Overlay):
             self.description = content.get("description", "")
             self.downloads = content.get("downloads", "0") if content.get("downloads") else 0
             self.theme_type = content.get("typeid", 0)
-            
+
             self.download_links = []
             self.download_names = []
 
@@ -98,17 +104,14 @@ class FeaturedBanner(Gtk.Overlay):
             while(True):
                 download_link = content.get(f"downloadlink{i}")
                 download_name = content.get(f"downloadname{i}")
-
                 if(download_link is None or download_name is None):
                     break
-
                 if(download_link):
                     if("." not in download_name):
                         i += 1
                         continue
                     self.download_links.append(download_link)
                     self.download_names.append(download_name)
-
                 i += 1
 
             self.image_urls = []
@@ -119,6 +122,7 @@ class FeaturedBanner(Gtk.Overlay):
                     break
                 self.image_urls.append(preview)
                 z += 1
+
             make_ui()
+
         soup_get(url, get_params)
-    
