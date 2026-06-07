@@ -7,9 +7,7 @@
   <strong>Prettify your desktop effortlessly</strong>
 </p>
 
-<p align="center">
-  <em>GNOME Shell · GTK3/4 · Icons · Cursors · Wallpapers</em>
-</p>
+<p align="center">GNOME Shell · GTK3/4 · Icons · Cursors · Wallpapers</p>
 
 <div align="center">
   <a href="https://flathub.org/apps/io.github.swordpuffin.wardrobe">
