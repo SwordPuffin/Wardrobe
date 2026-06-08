@@ -21,6 +21,7 @@ import gi, os
 gi.require_version('Xdp', '1.0')
 gi.require_version('XdpGtk4', '1.0')
 gi.require_version('Soup', '3.0')
+gi.require_version('GnomeAutoar', '0.1')
 from gi.repository import Gtk, Gdk, Adw, Gio, Xdp, XdpGtk4
 from .main_page import MainPage
 
