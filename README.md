@@ -36,7 +36,8 @@ flatpak install flathub io.github.swordpuffin.wardrobe
 ```
 
 
-### AUR (yay)
+### AUR 
+Using Yay:
 
 ```bash
 yay -S wardrobe
