@@ -225,6 +225,9 @@ class InstallPage(Adw.NavigationPage):
         gc.collect()
 
     def make_carousel_images(self, images, carousel):
+        def scroll_to_middle():
+            carousel.scroll_to(carousel.get_nth_page(len(images) // 2), True)
+            
         def on_receive_bytes(session, result, message):
             bytes = session.send_and_read_finish(result)
             if(message.get_status() != Soup.Status.OK):
@@ -233,6 +236,9 @@ class InstallPage(Adw.NavigationPage):
             picture = Gtk.Picture.new_for_paintable(texture)
             picture.set_content_fit(Gtk.ContentFit.CONTAIN)
             carousel.append(picture)
+            
+            if(carousel.get_n_pages() == len(images) and len(images) >= 3):
+                GLib.idle_add(scroll_to_middle)
 
         def get_image_bytes(url):
             session = Soup.Session()

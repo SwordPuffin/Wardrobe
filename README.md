@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/icons/hicolor/scalable/apps/io.github.swordpuffin.wardrobe.svg" width="128" height=128/>
+  <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/icons/hicolor/scalable/apps/io.github.swordpuffin.wardrobe.svg" width=128 height=128/>
 </p>
 <h1 align="center">Wardrobe</h1>
 
 <p align="center">
-  <strong>Install and manage community-made GNOME themes with ease</strong>
+  <strong>Prettify your desktop effortlessly</strong>
 </p>
 
 <p align="center">
@@ -21,10 +21,6 @@
   </a>
 </div>
 
-> ⚠️ **Note**  
-> Wardrobe is designed primarily for **GNOME**.  
-> Other desktop environments (Cinnamon, Xfce, etc.) are **not officially supported** and may not work correctly.
-
 <p align="center">
   <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/screenshots/Screenshot1.png" width="340"/>
   &nbsp;&nbsp;
@@ -33,20 +29,19 @@
   <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/screenshots/Screenshot3.png" width="280"/>
 </p>
 
-## 🧩 Features
-
-- 🎨 Install **GNOME Shell** themes
-- 🧵 Manage **GTK3 / GTK4** themes
-- 🖼️ Browse and apply **wallpapers**
-- 🖱️ Install **icon** and **cursor** themes
-- 🌐 Themes are sourced from [OpenDesktop](https://www.opendesktop.org/)
-
 ## ⬇️ Installation
 
-### Flathub (recommended)
+### Flathub
 
 ```bash
 flatpak install flathub io.github.swordpuffin.wardrobe
+```
+
+
+### AUR (yay)
+
+```bash
+yay -S wardrobe
 ```
 
 ## 🤝 Contributing
@@ -65,3 +60,4 @@ git clone https://github.com/SwordPuffin/Wardrobe
 Then, in [Builder](https://apps.gnome.org/Builder/) you can add it to your projects.
 
 ---
+

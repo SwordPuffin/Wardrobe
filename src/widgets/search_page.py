@@ -91,7 +91,7 @@ class SearchPage(Adw.NavigationPage):
 
         filters = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, min_children_per_line=1, max_children_per_line=2)
 
-        for category, id in [("Gnome Shell", 134), ("Icons", 386), ("GTK3/4", 366), ("Cursors", 107), ("Wallpapers", 261)]:
+        for category, id in [("GNOME Shell", 134), ("Icons", 386), ("GTK3/4", 366), ("Cursors", 107), ("Wallpapers", 261)]:
             button = Gtk.Button(label=_(category) + " ✔")
             button.id = id
             button.add_css_class("accent")

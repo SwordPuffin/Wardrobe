@@ -101,13 +101,13 @@ class MainPage(Adw.NavigationPage):
         carousel_box = Gtk.Box()
         content_box.append(carousel_box)
         carousel_configs = [
-            ("Curated", None, None),
-            ("Most Downloaded", "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&&categories=134x386x366x107x261&sortmode=down", None),
-            ("New & Updated", "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&categories=134x386x366x107x261&sortmode=new", None),
+            ("Curated", None),
+            ("Most Downloaded", "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&&categories=134x386x366x107x261&sortmode=down"),
+            ("New & Updated", "https://api.opendesktop.org/ocs/v1/content/data/?format=json&page=0&categories=134x386x366x107x261&sortmode=new"),
         ]
 
-        for topic, url, _ in carousel_configs:
-            title = Gtk.Label(label=topic, halign=Gtk.Align.START, margin_start=25, margin_top=25)
+        for topic, url, in carousel_configs:
+            title = Gtk.Label(label=_(topic), halign=Gtk.Align.START, margin_start=25, margin_top=25)
             title.add_css_class("title-2")
 
             carousel = ItemCarousel(self.connect_button)
