@@ -25,6 +25,8 @@
   <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/screenshots/Screenshot2.png" width="310"/>
   &nbsp;&nbsp;
   <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/screenshots/Screenshot3.png" width="280"/>
+  &nbsp;&nbsp;
+  <img src="https://github.com/SwordPuffin/Wardrobe/blob/main/data/screenshots/Screenshot4.png" width="280"/>
 </p>
 
 ## ⬇️ Installation

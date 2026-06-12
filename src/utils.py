@@ -38,7 +38,7 @@ def match_theme_type(typeid):
     category_map = {
         134: 0, 386: 1, 199: 1, 132: 1, 366: 2, 135: 2, 136: 2,
         107: 3, 300: 4, 286: 4, 312: 4, 261: 4, 299: 4, 283: 4, 360: 4,
-        287: 4
+        287: 4, 302: 4
     }
     return category_map.get(int(typeid), int(typeid))
 
@@ -47,6 +47,12 @@ def is_picture(file):
         return True
     else:
         return False
+
+def destroy_symlinks(folder_path):
+    parent = Path(folder_path).parent
+    for path in parent.iterdir():
+        if(path.is_symlink() and not path.exists()):
+            path.unlink()
 
 def search_for_images(folders):
     return_val = []
@@ -96,7 +102,7 @@ def resolve_issues(archive_path, typeid, change_func):
         folders = {
             0: ["gnome-shell"],
             1: ["index.theme"],
-            2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4", "index.theme"],
+            2: ["gtk-2.0", "gnome-shell", "gtk-3.0", "gtk-4.0", "cinnamon", "xfwm4"],
             3: ["cursors", "cursors_scalable", "index.theme"]
         }
 

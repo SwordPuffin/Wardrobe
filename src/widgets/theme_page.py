@@ -65,7 +65,7 @@ class ThemePage(Adw.NavigationPage):
         self.theme_action("add_page", categories[self.category] + self.selected + f"&page={self.current_page}");
 
     def make_new_page(self):
-        self.theme_action("new_page", categories[self.category] + "down")
+        self.theme_action("new_page", categories[self.category] + self.selected)
 
     def theme_action(self, action, url):
         if(action == "new_page"):

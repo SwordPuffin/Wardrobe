@@ -109,8 +109,6 @@
     background-color: alpha(@card_bg_color, 0.85);
     border: 1px solid alpha(@borders, 0.5);
     box-shadow: 0 1px 4px alpha(black, 0.08);
-    transition: border-color 200ms ease,
-                box-shadow 200ms ease,
-                background-color 200ms ease;
+    transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
 }
 

@@ -23,34 +23,45 @@ from gi.repository import Gtk, Adw
 class ItemCarousel(Gtk.Overlay):
     signal_ids = []
     
-    def __init__(self, connect_button):
+    def __init__(self, connect_button, version):
         super().__init__()
         
         carousel = Adw.Carousel(allow_scroll_wheel=False, spacing=12)
-        self.signal_ids.append((carousel, connect_button(carousel,  "page-changed", self.reorder)))
+        if(version == "infinite"):
+            self.signal_ids.append((carousel, connect_button(carousel,  "page-changed", self.reorder)))
         carousel.add_css_class("carousel-view")
         self.carousel = carousel
         self.set_child(carousel)
+        self.version = version
         
-        left_button = Gtk.Button(icon_name="go-previous-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, margin_start=12)
-        left_button.set_css_classes(["circular", "osd"])
-        right_button = Gtk.Button(icon_name="go-next-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, margin_end=12)
-        right_button.set_css_classes(["circular", "osd"])
-        self.add_overlay(left_button)
-        self.add_overlay(right_button)
+        if(version != "no_buttons"):
+            left_button = Gtk.Button(icon_name="go-previous-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.START, margin_start=12, visible=(version != "with_buttons"))
+            left_button.set_css_classes(["circular", "osd"])
+            right_button = Gtk.Button(icon_name="go-next-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.END, margin_end=12)
+            right_button.set_css_classes(["circular", "osd"])
+            self.add_overlay(left_button)
+            self.add_overlay(right_button)
 
-        def scroll_to(button, direction):
-            n = carousel.get_n_pages()
-            pos = carousel.get_position()
-            if(abs(pos - round(pos)) > 0.0):
-                return
-            target = round(pos) + direction
-            if(target < 0 or target >= n):
-                return
-            carousel.scroll_to(carousel.get_nth_page(target), True)
+            def scroll_to(button, direction):
+                left_button.set_visible(True)
+                right_button.set_visible(True)
+                n = carousel.get_n_pages()
+                pos = carousel.get_position()
+                if(abs(pos - round(pos)) > 0.0):
+                    return
+                target = round(pos) + direction
+                if(target < 0 or target >= n):
+                    return
 
-        self.signal_ids.append((left_button, connect_button(left_button,  "clicked", scroll_to, -1)))
-        self.signal_ids.append((right_button, connect_button(right_button, "clicked", scroll_to,  1)))
+                if(target == 0 and version == "with_buttons"):
+                    left_button.set_visible(False)
+                elif(target == n - 1 and version == "with_buttons"):
+                    right_button.set_visible(False)
+
+                carousel.scroll_to(carousel.get_nth_page(target), True)
+
+            self.signal_ids.append((left_button, connect_button(left_button,  "clicked", scroll_to, -1)))
+            self.signal_ids.append((right_button, connect_button(right_button, "clicked", scroll_to,  1)))
     
     def connect_button(self, widget, signal, callback, *args):
         return widget.connect(signal, callback, *args) 
@@ -70,7 +81,7 @@ class ItemCarousel(Gtk.Overlay):
 
     def clean(self):
         for widget, handler_id in self.signal_ids:
-            if handler_id is not None and widget.handler_is_connected(handler_id):
+            if(handler_id is not None and widget.handler_is_connected(handler_id)):
                 widget.disconnect(handler_id)
         self.signal_ids.clear()
         

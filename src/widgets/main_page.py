@@ -89,7 +89,7 @@ class MainPage(Adw.NavigationPage):
     def __init__(self, view):
         super().__init__(tag="main_page")
         content_box = Gtk.Box(vexpand=True, hexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=18, margin_bottom=25)
-        curated_ids = random.sample(["2299211", "1681315", "1477945", "1166289", "1359276", "1598493", "1197198", "1366182", "1499429", "1209330", "1267246", "1203425"], 8)
+        curated_ids = random.sample(["2299211", "1681315", "1477945", "1166289", "1359276", "1598493", "1197198", "1366182", "1209330", "1267246", "1203425", "2116659", "1476107"], 8)
         featured_banner = FeaturedBanner()
         featured_banner.page = view
         featured_banner.build_banner(self.get_url(curated_ids[0]))
@@ -110,7 +110,7 @@ class MainPage(Adw.NavigationPage):
             title = Gtk.Label(label=_(topic), halign=Gtk.Align.START, margin_start=25, margin_top=25)
             title.add_css_class("title-2")
 
-            carousel = ItemCarousel(self.connect_button)
+            carousel = ItemCarousel(self.connect_button, "infinite")
             carousel.carousel.page = view
 
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)

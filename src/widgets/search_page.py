@@ -22,11 +22,6 @@ from gi.repository import Gtk, Adw
 from .utils import soup_get, parse_json
 from .theme_cell_flowbox import ThemeCellFlowbox
 
-category_map = {
-        134: 0, 386: 1, 199: 1, 132: 1, 366: 2, 135: 2, 136: 2,
-        107: 3, 300: 4, 312: 4, 261: 4, 299: 4, 283: 4, 360: 4
-    }
-
 class SearchPage(Adw.NavigationPage):
     def __init__(self, view):
         super().__init__(tag="search_page")
@@ -52,7 +47,7 @@ class SearchPage(Adw.NavigationPage):
         self.search_flowbox = ThemeCellFlowbox()
         self.search_flowbox.is_search_flowbox = True
         self.search_flowbox.page = view
-        self.search_icon = Gtk.Image(icon_name="search-symbolic", pixel_size=160, valign=Gtk.Align.START, vexpand=True, margin_bottom=12)
+        self.search_icon = Gtk.Image(icon_name="search-symbolic", pixel_size=160, valign=Gtk.Align.CENTER, vexpand=True, margin_bottom=12)
         self.search_icon.add_css_class("dimmed")
         self.search_flowbox.search_icon = self.search_icon
         self.next_page_button = Gtk.Button(label=_("Next Page"), hexpand=True, halign=Gtk.Align.CENTER, width_request=350, margin_top=24, margin_bottom=24, visible=False)

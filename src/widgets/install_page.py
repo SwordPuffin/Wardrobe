@@ -20,10 +20,9 @@
 import gi, os, shutil, webbrowser, json, gc
 from html.parser import HTMLParser
 from gi.repository import Gtk, Gdk, Adw, Gio, GLib, Soup, Xdp, XdpGtk4
-from .utils import match_theme_type, soup_get, resolve_issues, strip_html
+from .utils import match_theme_type, soup_get, resolve_issues, strip_html, destroy_symlinks
 from .item_carousel import ItemCarousel
 from datetime import datetime, timezone
-
 
 data_home = os.path.join(GLib.getenv("HOME"), '.local', 'share')
 picture_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
@@ -77,7 +76,7 @@ class InstallPage(Adw.NavigationPage):
         top_box = Gtk.Box(hexpand=True, halign=Gtk.Align.CENTER, spacing=125)
         title_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=12, spacing=8)
         title = Gtk.Label(margin_start=24, label=theme_button.title, wrap=True, halign=Gtk.Align.START)
-        title.add_css_class("featured-title")
+        title.add_css_class("title-3")
         dev_label = Gtk.Label(margin_start=24, label=_("By: ") + theme_button.dev, halign=Gtk.Align.START)
         dev_label.set_css_classes(["title-4", "dimmed"])
         web_button = Gtk.Button(icon_name="web-symbolic", valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER, margin_end=24)
@@ -137,7 +136,15 @@ class InstallPage(Adw.NavigationPage):
 
         
         content_box.append(Gtk.Separator())
-        self.item_carousel = ItemCarousel(self.connect_button)
+
+        if(len(images) >= 3):
+            version = "infinite"
+        elif(len(images) == 2):
+            version = "with_buttons"
+        else:
+            version = "no_buttons"
+
+        self.item_carousel = ItemCarousel(self.connect_button, version)
         self.make_carousel_images(images, self.item_carousel.carousel)
         
         content_box.append(Adw.Clamp(child=self.item_carousel, maximum_size=900, height_request=350, margin_start=12, margin_end=12))
@@ -242,13 +249,8 @@ class InstallPage(Adw.NavigationPage):
 
         def get_image_bytes(url):
             session = Soup.Session()
-            message = Soup.Message(
-                method="GET",
-                uri=GLib.Uri.parse(url, GLib.UriFlags.NONE),
-            )
-            session.send_and_read_async(
-                message, GLib.PRIORITY_DEFAULT, None, on_receive_bytes, message
-            )
+            message = Soup.Message(method="GET", uri=GLib.Uri.parse(url, GLib.UriFlags.NONE))
+            session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, None, on_receive_bytes, message)
 
         for image in images:
             get_image_bytes(image)
@@ -265,20 +267,22 @@ class InstallPage(Adw.NavigationPage):
             button.get_parent().remove(first_child)
 
     def set_use_menu_button(self, themes):
-        use_button = Gtk.MenuButton(label=(_("Use")), margin_end=8, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
-        items = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
-        popover = Gtk.Popover()
-        popover.set_child(items)
-        for item in themes:
-            if(self.theme_type != 4):
-                theme = Gtk.Button(label=os.path.basename(item))
-            else:
-                theme = Gtk.Button(label=item)
-            theme.add_css_class("flat")
-            self.connect_button(theme, "clicked", self.set_theme)
-            items.append(theme)
-        use_button.set_popover(popover)
-        return use_button
+        if(self.theme_type != 0):
+            use_button = Gtk.MenuButton(label=(_("Use")), margin_end=8, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
+            items = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+            popover = Gtk.Popover()
+            popover.set_child(items)
+            for item in themes:
+                if(self.theme_type != 4):
+                    theme = Gtk.Button(label=os.path.basename(item))
+                else:
+                    theme = Gtk.Button(label=item)
+                theme.add_css_class("flat")
+                self.connect_button(theme, "clicked", self.set_theme)
+                items.append(theme)
+            use_button.set_popover(popover)
+            return use_button
+        return Gtk.Box()
 
     def install_theme(self, button, url, name, typeid):
         def change_button_to_delete(delete_paths, theme_paths):
@@ -310,6 +314,7 @@ class InstallPage(Adw.NavigationPage):
                 shutil.rmtree(item)
             else:
                 os.remove(item)
+        destroy_symlinks(folders[self.theme_type])
                 
     def set_theme(self, button):
         interface_settings = Gio.Settings(schema_id="org.gnome.desktop.interface")
