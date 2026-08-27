@@ -1,0 +1,124 @@
+# Translation template for Wardrobe
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: wardrobe\n"
+"POT-Creation-Date: 2026-06-07 00:00+0000\n"
+"PO-Revision-Date: 2026-08-26 14:13-0400\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.9\n"
+
+#. Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.
+#: main.py:37
+msgid "translator-credits"
+msgstr "haggen88"
+
+#: main_page.py:110
+msgid "Curated"
+msgstr "Seleccionado"
+
+#: main_page.py:110
+msgid "Most Downloaded"
+msgstr "Los más descargados"
+
+#: main_page.py:110
+msgid "New & Updated"
+msgstr "Novedades y actualizaciones"
+
+#: main_page.py:40
+msgid "GNOME Shell"
+msgstr "GNOME Shell"
+
+#: main_page.py:41
+msgid "Icons"
+msgstr "Íconos"
+
+#: main_page.py:42
+msgid "GTK3/4"
+msgstr "GTK3/4"
+
+#: main_page.py:43
+msgid "Cursors"
+msgstr "Cursores"
+
+#: main_page.py:44
+msgid "Wallpapers"
+msgstr "Fondos de pantalla"
+
+#: main_page.py:45
+msgid "Search"
+msgstr "Buscar"
+
+#: main_page_banner.py:46
+msgid "Get"
+msgstr "Descargar"
+
+#: main_page_banner.py:77 install_page.py:81 theme_cell.py:59
+msgid "By: "
+msgstr "Por: "
+
+#: install_page.py:104
+msgid "Downloads"
+msgstr "Descargas"
+
+#: install_page.py:104 theme_page.py:46
+msgid "Rating"
+msgstr "Calificación"
+
+#: install_page.py:104
+msgid "Last Updated"
+msgstr "Última actualización"
+
+#: install_page.py:156
+msgid "Show More"
+msgstr "Mostrar más"
+
+#: install_page.py:163
+msgid "Show Less"
+msgstr "Mostrar menos"
+
+#: install_page.py:167
+msgid "Read more"
+msgstr "Más información"
+
+#: install_page.py:175
+msgid "Save Folder"
+msgstr "Guardar carpeta"
+
+#: install_page.py:188
+msgid "Become a supporter"
+msgstr "Conviértete en patrocinador"
+
+#: install_page.py:268
+msgid "Use"
+msgstr "Usar"
+
+#: search_page.py:35
+msgid "Search Themes"
+msgstr "Buscar temas"
+
+#: search_page.py:58 theme_cell_flowbox.py:37 theme_page.py:51
+msgid "Next Page"
+msgstr "Página siguiente"
+
+#: search_page.py:94
+msgid "Gnome Shell"
+msgstr "Gnome Shell"
+
+#: theme_page.py:46
+msgid "Popular"
+msgstr "Popular"
+
+#: theme_page.py:46
+msgid "Alphabetical"
+msgstr "Por orden alfabético"
+
+#: theme_page.py:46
+msgid "Latest"
+msgstr "Lo último"
